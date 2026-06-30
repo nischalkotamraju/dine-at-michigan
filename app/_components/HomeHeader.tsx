@@ -39,11 +39,11 @@ const HomeHeader = ({ currentTime, locationTypes }: HomeHeaderProps) => {
             width: 38,
             height: 38,
             borderRadius: 10,
-            backgroundColor: COLORS['um-maize'],
+            backgroundColor: '#00274C',
             alignItems: 'center',
             justifyContent: 'center',
           }}>
-            <UtensilsCrossed size={20} color="#00274C" strokeWidth={2.2} />
+            <UtensilsCrossed size={20} color={COLORS['um-maize']} strokeWidth={2.2} />
           </View>
           <View>
             <Text style={{ fontSize: 15, fontWeight: '800', color: isDarkMode ? '#fff' : '#000', letterSpacing: -0.3 }}>
