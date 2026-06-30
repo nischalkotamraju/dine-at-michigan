@@ -1,13 +1,11 @@
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
-import { SlidersHorizontal } from 'lucide-react-native';
-import { Image, Text, TouchableOpacity, View } from 'react-native';
+import { UtensilsCrossed, SlidersHorizontal } from 'lucide-react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 import { useHomeFilterStore } from '~/store/useHomeFilterStore';
 import { useSettingsStore } from '~/store/useSettingsStore';
 import { COLORS } from '~/utils/colors';
 import type * as schema from '../../services/database/schema';
-
-const icon = require('../../assets/image.png');
 
 type HomeHeaderProps = {
   currentTime: Date;
@@ -35,14 +33,24 @@ const HomeHeader = ({ currentTime, locationTypes }: HomeHeaderProps) => {
     <View style={{ marginTop: 8, gap: 16 }}>
       {/* Top bar */}
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <Image source={icon} style={{ width: 36, height: 36 }} />
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          {/* App icon mark */}
+          <View style={{
+            width: 38,
+            height: 38,
+            borderRadius: 10,
+            backgroundColor: COLORS['um-maize'],
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <UtensilsCrossed size={20} color="#00274C" strokeWidth={2.2} />
+          </View>
           <View>
-            <Text style={{ fontSize: 10, fontWeight: '700', color: COLORS['um-maize'], letterSpacing: 1 }}>
-              DINE @
+            <Text style={{ fontSize: 15, fontWeight: '800', color: isDarkMode ? '#fff' : '#000', letterSpacing: -0.3 }}>
+              Dine @ Michigan
             </Text>
-            <Text style={{ fontSize: 10, fontWeight: '700', color: COLORS['um-maize'], letterSpacing: 1, marginTop: -2 }}>
-              MICHIGAN
+            <Text style={{ fontSize: 11, fontWeight: '500', color: COLORS['um-maize'], letterSpacing: 0.2, marginTop: -1 }}>
+              University of Michigan
             </Text>
           </View>
         </View>
