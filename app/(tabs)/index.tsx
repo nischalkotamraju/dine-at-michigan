@@ -85,7 +85,6 @@ const sectionAndFilterLocations = (
     );
 
     if (status === 'open') open.push(location);
-    else if (status === 'opening_soon') openingSoon.push(location);
     else closed.push(location);
   }
 
@@ -267,12 +266,8 @@ export default function Home() {
 
   const listData: ListRow[] = [];
   if (open.length > 0) {
-    listData.push({ type: 'header', label: 'OPEN NOW', color: '#22C55E' });
+    listData.push({ type: 'header', label: 'OPEN NOW', color: '#FFCB05' });
     for (const item of open) listData.push({ type: 'location', item });
-  }
-  if (openingSoon.length > 0) {
-    listData.push({ type: 'header', label: 'OPENING SOON', color: '#F59E0B' });
-    for (const item of openingSoon) listData.push({ type: 'location', item });
   }
   if (closed.length > 0) {
     listData.push({ type: 'header', label: 'CLOSED', color: isDarkMode ? '#6B7280' : '#9CA3AF' });

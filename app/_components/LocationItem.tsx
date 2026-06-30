@@ -55,27 +55,12 @@ const LocationItem = ({ location, currentTime }: LocationItemProps) => {
     }
   };
 
-  const statusColor =
-    status === 'open' ? '#22C55E' : status === 'opening_soon' ? '#F59E0B' : '#6B7280';
-
-  const statusBg =
-    status === 'open'
-      ? 'rgba(34,197,94,0.15)'
-      : status === 'opening_soon'
-        ? 'rgba(245,158,11,0.15)'
-        : 'rgba(107,114,128,0.15)';
-
-  const statusLabel =
-    status === 'open' ? 'Open' : status === 'opening_soon' ? 'Soon' : 'Closed';
+  const statusColor = status === 'open' ? '#FFCB05' : '#6B7280';
 
   const getTimeText = () => {
     if (status === 'open') {
       const msg = getLocationTimeMessage(locationData, currentTime);
       return msg.replace('Open for ', 'Closes in ');
-    }
-    if (status === 'opening_soon') {
-      const nextTime = getNextOpenTimeFormatted(locationData, currentTime);
-      return nextTime ? `Opens ${nextTime}` : 'Opening soon';
     }
     return null;
   };
@@ -121,20 +106,6 @@ const LocationItem = ({ location, currentTime }: LocationItemProps) => {
               {timeText}
             </Text>
           )}
-        </View>
-
-        {/* Status pill */}
-        <View
-          style={{
-            backgroundColor: statusBg,
-            paddingHorizontal: 10,
-            paddingVertical: 4,
-            borderRadius: 20,
-          }}
-        >
-          <Text style={{ fontSize: 12, fontWeight: '600', color: statusColor }}>
-            {statusLabel}
-          </Text>
         </View>
 
         <ChevronRight size={14} color={isDarkMode ? '#3A3A3C' : '#C7C7CC'} />
