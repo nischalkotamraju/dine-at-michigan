@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { Check, SlidersHorizontal, X } from 'lucide-react-native';
-import { useEffect, useRef, useState } from 'react';
-import { Animated, Image, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useState } from 'react';
+import { Image, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSettingsStore } from '~/store/useSettingsStore';
 import { COLORS } from '~/utils/colors';
@@ -31,27 +31,7 @@ const HomeHeader = ({
 }: HomeHeaderProps) => {
   const isDarkMode = useSettingsStore((state) => state.isDarkMode);
   const insets = useSafeAreaInsets();
-  const [sheetVisible, setSheetVisible] = useState(false);
-  const [modalMounted, setModalMounted] = useState(false);
-  const backdropAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(300)).current;
-
-  useEffect(() => {
-    if (sheetVisible) {
-      setModalMounted(true);
-      Animated.parallel([
-        Animated.timing(backdropAnim, { toValue: 1, duration: 220, useNativeDriver: true }),
-        Animated.spring(slideAnim, { toValue: 0, damping: 22, stiffness: 280, mass: 0.8, useNativeDriver: true }),
-      ]).start();
-    } else {
-      Animated.parallel([
-        Animated.timing(backdropAnim, { toValue: 0, duration: 180, useNativeDriver: true }),
-        Animated.timing(slideAnim, { toValue: 300, duration: 200, useNativeDriver: true }),
-      ]).start(() => setModalMounted(false));
-    }
-  }, [sheetVisible]);
-
-  const closeSheet = () => setSheetVisible(false);
+  const [visible, setVisible] = useState(false);
 
   const textColor = isDarkMode ? '#fff' : '#111';
   const subColor = isDarkMode ? '#9CA3AF' : '#6B7280';
@@ -73,7 +53,7 @@ const HomeHeader = ({
   const handleSelect = (id: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setSelectedFilter(id as FilterType);
-    closeSheet();
+    setVisible(false);
   };
 
   return (
@@ -107,7 +87,7 @@ const HomeHeader = ({
       <TouchableOpacity
         onPress={() => {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          setSheetVisible(true);
+          setVisible(true);
         }}
         style={{
           flexDirection: 'row',
@@ -117,9 +97,7 @@ const HomeHeader = ({
           paddingHorizontal: 12,
           paddingVertical: 7,
           borderRadius: 20,
-          backgroundColor: filterActive
-            ? COLORS['um-maize']
-            : isDarkMode ? '#2C2C2E' : '#F2F2F7',
+          backgroundColor: filterActive ? COLORS['um-maize'] : isDarkMode ? '#2C2C2E' : '#F2F2F7',
         }}
       >
         <SlidersHorizontal
@@ -132,36 +110,39 @@ const HomeHeader = ({
         </Text>
       </TouchableOpacity>
 
-      {/* Native modal sheet */}
+      {/* Backdrop — fades natively */}
       <Modal
-        visible={modalMounted}
+        visible={visible}
         transparent
-        animationType="none"
+        animationType="fade"
         presentationStyle="overFullScreen"
-        onRequestClose={closeSheet}
+        statusBarTranslucent
+        onRequestClose={() => setVisible(false)}
       >
-        {/* Backdrop */}
-        <Pressable style={StyleSheet.absoluteFillObject} onPress={closeSheet}>
-          <Animated.View
-            style={[
-              StyleSheet.absoluteFillObject,
-              { backgroundColor: 'rgba(0,0,0,0.4)', opacity: backdropAnim },
-            ]}
-          />
-        </Pressable>
+        <Pressable
+          style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(0,0,0,0.45)' }]}
+          onPress={() => setVisible(false)}
+        />
+      </Modal>
 
-        {/* Sheet */}
-        <Animated.View
+      {/* Sheet — slides natively */}
+      <Modal
+        visible={visible}
+        transparent
+        animationType="slide"
+        presentationStyle="overFullScreen"
+        statusBarTranslucent
+        onRequestClose={() => setVisible(false)}
+      >
+        {/* Tap-outside-to-close area */}
+        <Pressable style={{ flex: 1 }} onPress={() => setVisible(false)} />
+
+        <View
           style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
             backgroundColor: sheetBg,
             borderTopLeftRadius: 16,
             borderTopRightRadius: 16,
             paddingBottom: insets.bottom + 8,
-            transform: [{ translateY: slideAnim }],
           }}
         >
           {/* Handle */}
@@ -169,19 +150,18 @@ const HomeHeader = ({
             <View style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: isDarkMode ? '#555' : '#D1D1D6' }} />
           </View>
 
-          {/* Header row */}
+          {/* Header */}
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 12 }}>
             <Text style={{ fontSize: 13, fontWeight: '600', color: subColor, letterSpacing: 0.5 }}>
               FILTER BY TYPE
             </Text>
-            <TouchableOpacity onPress={() => setSheetVisible(false)}>
+            <TouchableOpacity onPress={() => setVisible(false)}>
               <X size={18} color={subColor} />
             </TouchableOpacity>
           </View>
 
           <View style={{ height: StyleSheet.hairlineWidth, backgroundColor: divider }} />
 
-          {/* Options */}
           {options.map((option, index) => {
             const isSelected = selectedFilter === option.id;
             return (
@@ -207,7 +187,7 @@ const HomeHeader = ({
               </View>
             );
           })}
-        </Animated.View>
+        </View>
       </Modal>
     </View>
   );
