@@ -15,13 +15,10 @@ jobs:
           WORKER_URL="https://michigan-dining-scraper.michigan-dining.workers.dev"
           for offset in -2 -1 0 1 2 3; do
             DATE=$(date -u -d "$offset days" '+%Y-%m-%d')
-            echo "=== Scraping $DATE ==="
-            curl -s "$WORKER_URL/?date=$DATE" | python3 -c "
-          import sys, json
-          data = json.load(sys.stdin)
-          for r in data.get('results', []):
-              print(f\"  {r.get('hall','?')}: {r.get('result','?')}\")
-          "
-            echo ""
-            sleep 5
+            echo "=== Triggering scrape for $DATE ==="
+            # Fire and forget — don't wait for response (worker can take >30s)
+            curl -s --max-time 10 "$WORKER_URL/?date=$DATE" > /dev/null 2>&1 &
+            sleep 35
           done
+          wait
+          echo "All scrape jobs triggered"
