@@ -10,20 +10,18 @@ jobs:
   scrape:
     runs-on: ubuntu-latest
     steps:
-      - name: Scrape all dates (3 passes to catch ScraperAPI failures)
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Playwright and dependencies
         run: |
-          WORKER_URL="https://michigan-dining-scraper.michigan-dining.workers.dev"
+          npm install playwright @supabase/supabase-js
+          npx playwright install chromium --with-deps
 
-          for PASS in 1 2 3; do
-            echo "=== Pass $PASS ==="
-            for offset in -2 -1 0 1 2 3; do
-              DATE=$(date -u -d "$offset days" '+%Y-%m-%d')
-              echo "  Scraping $DATE..."
-              curl -s --max-time 55 "$WORKER_URL/?date=$DATE" > /dev/null 2>&1
-              sleep 8
-            done
-            echo "  Pass $PASS done, waiting before next pass..."
-            sleep 30
-          done
-
-          echo "All passes complete!"
+      - name: Scrape all dining halls (6 dates)
+        env:
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: node scripts/scrape-menus.mjs

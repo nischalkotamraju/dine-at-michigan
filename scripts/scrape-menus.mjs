@@ -1,16 +1,21 @@
 /**
  * UMich Dining Menu Scraper
- * Scrapes public HTML from dining.umich.edu and inserts into Supabase.
+ * Uses Playwright (headless Chromium) to bypass Cloudflare bot protection on
+ * dining.umich.edu — no ScraperAPI, no timeouts.
  * Run with: node scripts/scrape-menus.mjs [YYYY-MM-DD]
+ *
+ * Env vars required:
+ *   SUPABASE_SERVICE_ROLE_KEY
  */
 
+import { chromium } from 'playwright';
 import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://gtkzwyhqxtubgmlvovmn.supabase.co';
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://jzcxllxhnjjbgflpsehi.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!SUPABASE_KEY) {
-  console.error('❌ SUPABASE_SERVICE_ROLE_KEY env var is required');
+  console.error('SUPABASE_SERVICE_ROLE_KEY env var is required');
   process.exit(1);
 }
 
@@ -187,35 +192,18 @@ async function getLocationMap() {
 }
 
 // ---------------------------------------------------------------------------
-// Scrape one hall for one date
+// Scrape one hall for one date (uses Playwright page)
 // ---------------------------------------------------------------------------
 
-async function scrapeHall(hall, date, locationId) {
+async function scrapeHall(page, hall, date, locationId) {
   const url = `https://dining.umich.edu/menus-locations/dining-halls/${hall.slug}/?menuDate=${date}`;
-  const res = await fetch(url, {
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-      'Accept-Language': 'en-US,en;q=0.9',
-      'Accept-Encoding': 'gzip, deflate, br',
-      'Cache-Control': 'no-cache',
-      'Pragma': 'no-cache',
-      'Sec-Fetch-Dest': 'document',
-      'Sec-Fetch-Mode': 'navigate',
-      'Sec-Fetch-Site': 'none',
-      'Sec-Fetch-User': '?1',
-      'Upgrade-Insecure-Requests': '1',
-    },
-  });
+  await page.goto(url, { waitUntil: 'networkidle', timeout: 60000 });
+  // Wait for menu content or "no menu" indicator
+  await page.waitForSelector('h3, .no-menu-message, #content', { timeout: 15000 }).catch(() => {});
+  const html = await page.content();
 
-  if (!res.ok) {
-    console.log(`  ⚠️  HTTP ${res.status}`);
-    return;
-  }
-
-  const html = await res.text();
-  if (html.length < 10000 || html.includes('Just a moment')) {
-    console.log(`  ⚠️  Got bot challenge page`);
+  if (html.length < 5000 || html.includes('Just a moment') || html.includes('cf-browser-verification')) {
+    console.log(`  Bot challenge page (${html.length} bytes)`);
     return;
   }
 
@@ -314,23 +302,56 @@ async function scrapeHall(hall, date, locationId) {
 // Main
 // ---------------------------------------------------------------------------
 
-const targetDate = process.argv[2] || new Date().toISOString().split('T')[0];
-console.log(`\n🍽️  Scraping UMich dining menus for ${targetDate}\n`);
-
-const locationMap = await getLocationMap();
-
-for (const hall of DINING_HALLS) {
-  const locationId = locationMap[hall.name];
-  if (!locationId) {
-    console.log(`${hall.name}: not found in Supabase`);
-    continue;
-  }
-  process.stdout.write(`${hall.name}... `);
-  try {
-    await scrapeHall(hall, targetDate, locationId);
-  } catch (err) {
-    console.log(`  ❌ ${err.message}`);
+// Determine dates: CLI arg or full 6-date range (2 back, today, 3 forward)
+let dates;
+if (process.argv[2]) {
+  dates = [process.argv[2]];
+} else {
+  const today = new Date();
+  dates = [];
+  for (let offset = -2; offset <= 3; offset++) {
+    const d = new Date(today);
+    d.setUTCDate(d.getUTCDate() + offset);
+    dates.push(d.toISOString().split('T')[0]);
   }
 }
 
-console.log('\n🎉 Done!');
+console.log(`Scraping dates: ${dates.join(', ')}`);
+
+const locationMap = await getLocationMap();
+
+const browser = await chromium.launch({ headless: true });
+const context = await browser.newContext({
+  userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+  locale: 'en-US',
+  extraHTTPHeaders: {
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+    'Accept-Language': 'en-US,en;q=0.9',
+  },
+});
+const page = await context.newPage();
+
+try {
+  for (const date of dates) {
+    console.log(`\n=== ${date} ===`);
+    for (const hall of DINING_HALLS) {
+      const locationId = locationMap[hall.name];
+      if (!locationId) {
+        console.log(`  ${hall.name}: not found in Supabase`);
+        continue;
+      }
+      process.stdout.write(`  ${hall.name}... `);
+      try {
+        await scrapeHall(page, hall, date, locationId);
+      } catch (err) {
+        console.log(`FAILED: ${err.message}`);
+      }
+      // Polite delay
+      await new Promise(r => setTimeout(r, 1500));
+    }
+  }
+} finally {
+  await browser.close();
+}
+
+console.log('\nDone!');

@@ -214,7 +214,7 @@ async function scrapeHall(hall, date, scraperApiKey, supabaseUrl, supabaseKey, l
 
   // 1. Fetch HTML from ScraperAPI, with 1 retry on 500 (1-2 subrequests)
   const target = `https://dining.umich.edu/menus-locations/dining-halls/${hall.slug}/?menuDate=${date}`;
-  const scraperUrl = `http://api.scraperapi.com/?api_key=${scraperApiKey}&url=${encodeURIComponent(target)}`;
+  const scraperUrl = `http://api.scraperapi.com/?api_key=${scraperApiKey}&url=${encodeURIComponent(target)}&render=true`;
   let res = await fetch(scraperUrl);
   if (!res.ok) {
     // Wait 3s and retry once
