@@ -19,7 +19,7 @@ import { COLORS } from '~/utils/colors';
 const { width } = Dimensions.get('window');
 const PADDING = 20;
 const GAP = 12;
-const COLS = 3;
+const COLS = 2;
 const CARD_SIZE = (width - PADDING * 2 - GAP * (COLS - 1)) / COLS;
 
 const getIcon = (id: string, color: string, size = 28) => {
