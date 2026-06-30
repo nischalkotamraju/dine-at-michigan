@@ -81,13 +81,19 @@ export default function HomeFilterModal() {
           gap: GAP,
         }}
       >
-        {options.map((option) => {
+        {options.map((option, index) => {
           const isSelected = selectedFilter === option.id;
-          const iconColor = isSelected ? COLORS['um-maize'] : isDarkMode ? '#8E8E93' : '#8E8E93';
-          const tileBg = isSelected
-            ? isDarkMode ? '#2C2C2E' : '#fff'
-            : isDarkMode ? '#2C2C2E' : '#fff';
+          const iconColor = isSelected ? COLORS['um-maize'] : '#8E8E93';
+          const tileBg = isDarkMode ? '#2C2C2E' : '#fff';
           const borderColor = isSelected ? COLORS['um-maize'] : 'transparent';
+
+          const totalRows = Math.ceil(options.length / COLS);
+          const cardRow = Math.floor(index / COLS);
+          const isLastRow = cardRow === totalRows - 1;
+          const isLeftCard = index % COLS === 0;
+          const isRightCard = index % COLS === COLS - 1;
+          const SHEET_RADIUS = 38;
+          const CARD_RADIUS = 18;
 
           return (
             <TouchableOpacity
@@ -98,7 +104,10 @@ export default function HomeFilterModal() {
                 width: CARD_SIZE,
                 height: CARD_SIZE,
                 backgroundColor: tileBg,
-                borderRadius: 18,
+                borderTopLeftRadius: CARD_RADIUS,
+                borderTopRightRadius: CARD_RADIUS,
+                borderBottomLeftRadius: isLastRow && isLeftCard ? SHEET_RADIUS : CARD_RADIUS,
+                borderBottomRightRadius: isLastRow && isRightCard ? SHEET_RADIUS : CARD_RADIUS,
                 borderWidth: 2,
                 borderColor: borderColor,
                 alignItems: 'center',
