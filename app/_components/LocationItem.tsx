@@ -80,7 +80,7 @@ const LocationItem = ({ location, currentTime }: LocationItemProps) => {
     return null;
   };
 
-  const cardBg = isDarkMode ? '#111' : '#F5F5F7';
+  const cardBg = isDarkMode ? '#1C1C1E' : '#F5F5F7';
   const nameColor = status === 'closed'
     ? isDarkMode ? '#555' : '#AEAEB2'
     : isDarkMode ? '#fff' : '#000';
