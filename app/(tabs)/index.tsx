@@ -20,6 +20,7 @@ import Alert from '~/components/Alert';
 import { Container } from '~/components/Container';
 import OnboardingScreen from '~/components/onboarding/OnboardingScreen';
 import { useOnboardingStore } from '~/store/useOnboardingStore';
+import { useHomeFilterStore } from '~/store/useHomeFilterStore';
 import { useSettingsStore } from '~/store/useSettingsStore';
 import { COLORS } from '~/utils/colors';
 import { getTodayInCentralTime } from '~/utils/date';
@@ -97,8 +98,8 @@ export type DrizzleDB = ExpoSQLiteDatabase<typeof schema> & {
 
 export default function Home() {
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [selectedFilter, setSelectedFilter] = useState<FilterType>('all');
   const [refreshing, setRefreshing] = useState(false);
+  const { selectedFilter } = useHomeFilterStore();
   const [refreshKey, setRefreshKey] = useState(0);
   const [layoutLoaded, setLayoutLoaded] = useState(false);
   const isOnboardingComplete = useOnboardingStore((state) => state.isOnboardingComplete);
@@ -333,8 +334,6 @@ export default function Home() {
             ListHeaderComponent={
               <HomeHeader
                 currentTime={currentTime}
-                selectedFilter={selectedFilter}
-                setSelectedFilter={setSelectedFilter}
                 locationTypes={locationTypes}
               />
             }

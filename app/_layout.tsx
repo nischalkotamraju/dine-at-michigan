@@ -105,6 +105,14 @@ const AppContent = () => {
                         headerShown: false,
                       }}
                     />
+                    <Stack.Screen
+                      name="home-filter"
+                      options={{
+                        presentation: 'modal',
+                        headerShown: false,
+                        animation: 'slide_from_bottom',
+                      }}
+                    />
                   </Stack>
                 </VersionCheckProvider>
               </SheetProvider>

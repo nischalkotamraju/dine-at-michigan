@@ -1,19 +1,16 @@
 import * as Haptics from 'expo-haptics';
-import { Check, SlidersHorizontal, X } from 'lucide-react-native';
-import { useState } from 'react';
-import { Image, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
+import { SlidersHorizontal } from 'lucide-react-native';
+import { Image, Text, TouchableOpacity, View } from 'react-native';
+import { useHomeFilterStore } from '~/store/useHomeFilterStore';
 import { useSettingsStore } from '~/store/useSettingsStore';
 import { COLORS } from '~/utils/colors';
 import type * as schema from '../../services/database/schema';
-import type { FilterType } from '../(tabs)';
 
 const icon = require('../../assets/image.png');
 
 type HomeHeaderProps = {
   currentTime: Date;
-  selectedFilter: string;
-  setSelectedFilter: (filter: FilterType) => void;
   locationTypes: schema.LocationType[];
 };
 
@@ -23,15 +20,9 @@ const getGreeting = (hour: number) => {
   return 'Good evening';
 };
 
-const HomeHeader = ({
-  currentTime,
-  selectedFilter,
-  setSelectedFilter,
-  locationTypes,
-}: HomeHeaderProps) => {
+const HomeHeader = ({ currentTime, locationTypes }: HomeHeaderProps) => {
   const isDarkMode = useSettingsStore((state) => state.isDarkMode);
-  const insets = useSafeAreaInsets();
-  const [visible, setVisible] = useState(false);
+  const { selectedFilter } = useHomeFilterStore();
 
   const textColor = isDarkMode ? '#fff' : '#111';
   const subColor = isDarkMode ? '#9CA3AF' : '#6B7280';
@@ -40,26 +31,10 @@ const HomeHeader = ({
     ? locationTypes.find((t) => t.name === selectedFilter)?.name ?? 'All'
     : null;
 
-  const sheetBg = isDarkMode ? '#1C1C1E' : '#fff';
-  const divider = isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
-
-  const options = [
-    { id: 'all', name: 'All Locations' },
-    ...locationTypes
-      .sort((a, b) => a.display_order - b.display_order)
-      .map((t) => ({ id: t.name, name: t.name })),
-  ];
-
-  const handleSelect = (id: string) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setSelectedFilter(id as FilterType);
-    setVisible(false);
-  };
-
   return (
     <View style={{ marginTop: 8, gap: 16 }}>
       {/* Top bar */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <Image source={icon} style={{ width: 36, height: 36 }} />
           <View>
@@ -87,7 +62,7 @@ const HomeHeader = ({
       <TouchableOpacity
         onPress={() => {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          setVisible(true);
+          router.push('/home-filter');
         }}
         style={{
           flexDirection: 'row',
@@ -109,86 +84,6 @@ const HomeHeader = ({
           {filterActive ? activeLabel : 'All Locations'}
         </Text>
       </TouchableOpacity>
-
-      {/* Backdrop — fades natively */}
-      <Modal
-        visible={visible}
-        transparent
-        animationType="fade"
-        presentationStyle="overFullScreen"
-        statusBarTranslucent
-        onRequestClose={() => setVisible(false)}
-      >
-        <Pressable
-          style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(0,0,0,0.45)' }]}
-          onPress={() => setVisible(false)}
-        />
-      </Modal>
-
-      {/* Sheet — slides natively */}
-      <Modal
-        visible={visible}
-        transparent
-        animationType="slide"
-        presentationStyle="overFullScreen"
-        statusBarTranslucent
-        onRequestClose={() => setVisible(false)}
-      >
-        {/* Tap-outside-to-close area */}
-        <Pressable style={{ flex: 1 }} onPress={() => setVisible(false)} />
-
-        <View
-          style={{
-            backgroundColor: sheetBg,
-            borderTopLeftRadius: 16,
-            borderTopRightRadius: 16,
-            paddingBottom: insets.bottom + 8,
-          }}
-        >
-          {/* Handle */}
-          <View style={{ alignItems: 'center', paddingTop: 10, paddingBottom: 4 }}>
-            <View style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: isDarkMode ? '#555' : '#D1D1D6' }} />
-          </View>
-
-          {/* Header */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 12 }}>
-            <Text style={{ fontSize: 13, fontWeight: '600', color: subColor, letterSpacing: 0.5 }}>
-              FILTER BY TYPE
-            </Text>
-            <TouchableOpacity onPress={() => setVisible(false)}>
-              <X size={18} color={subColor} />
-            </TouchableOpacity>
-          </View>
-
-          <View style={{ height: StyleSheet.hairlineWidth, backgroundColor: divider }} />
-
-          {options.map((option, index) => {
-            const isSelected = selectedFilter === option.id;
-            return (
-              <View key={option.id}>
-                <TouchableOpacity
-                  onPress={() => handleSelect(option.id)}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    paddingVertical: 15,
-                    paddingHorizontal: 20,
-                  }}
-                >
-                  <Text style={{ fontSize: 17, fontWeight: isSelected ? '600' : '400', color: isSelected ? COLORS['um-maize'] : textColor }}>
-                    {option.name}
-                  </Text>
-                  {isSelected && <Check size={18} color={COLORS['um-maize']} strokeWidth={2.5} />}
-                </TouchableOpacity>
-                {index < options.length - 1 && (
-                  <View style={{ height: StyleSheet.hairlineWidth, backgroundColor: divider, marginLeft: 20 }} />
-                )}
-              </View>
-            );
-          })}
-        </View>
-      </Modal>
     </View>
   );
 };
