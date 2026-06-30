@@ -270,7 +270,7 @@ export default function Home() {
     for (const item of open) listData.push({ type: 'location', item });
   }
   if (closed.length > 0) {
-    listData.push({ type: 'header', label: 'CLOSED', color: isDarkMode ? '#6B7280' : '#9CA3AF' });
+    listData.push({ type: 'header', label: 'CLOSED', color: '#4A86C8' });
     for (const item of closed) listData.push({ type: 'location', item });
   }
 

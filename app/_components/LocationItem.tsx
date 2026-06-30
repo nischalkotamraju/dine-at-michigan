@@ -55,7 +55,7 @@ const LocationItem = ({ location, currentTime }: LocationItemProps) => {
     }
   };
 
-  const statusColor = status === 'open' ? '#FFCB05' : '#6B7280';
+  const statusColor = status === 'open' ? '#FFCB05' : '#4A86C8';
 
   const getTimeText = () => {
     if (status === 'open') {
@@ -66,9 +66,7 @@ const LocationItem = ({ location, currentTime }: LocationItemProps) => {
   };
 
   const cardBg = isDarkMode ? '#1C1C1E' : '#F5F5F7';
-  const nameColor = status === 'closed'
-    ? isDarkMode ? '#555' : '#AEAEB2'
-    : isDarkMode ? '#fff' : '#000';
+  const nameColor = isDarkMode ? '#fff' : '#000';
   const typeColor = isDarkMode ? '#555' : '#AEAEB2';
   const timeText = getTimeText();
 
