@@ -2,7 +2,7 @@ import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { ChevronRight } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import Reanimated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 
 import { useDatabase } from '~/hooks/useDatabase';
@@ -22,7 +22,6 @@ type LocationItemProps = {
 const LocationItem = ({ location, currentTime }: LocationItemProps) => {
   const [status, setStatus] = useState<'open' | 'opening_soon' | 'closed'>('closed');
   const scale = useSharedValue(1);
-  const opacity = useSharedValue(1);
   const db = useDatabase();
   const { useColloquialNames, isDarkMode } = useSettingsStore();
   const { locationData } = useLocationDetails(location.name ?? '');
@@ -36,18 +35,15 @@ const LocationItem = ({ location, currentTime }: LocationItemProps) => {
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
-    opacity: opacity.value,
   }));
 
   const handlePressIn = () => {
-    scale.value = withSpring(0.98, { damping: 15, stiffness: 400 });
-    opacity.value = withSpring(0.7, { damping: 15, stiffness: 400 });
+    scale.value = withSpring(0.97, { damping: 15, stiffness: 400 });
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
 
   const handlePressOut = () => {
     scale.value = withSpring(1, { damping: 15, stiffness: 400 });
-    opacity.value = withSpring(1, { damping: 15, stiffness: 400 });
   };
 
   const handlePress = () => {
@@ -62,14 +58,17 @@ const LocationItem = ({ location, currentTime }: LocationItemProps) => {
   const statusColor =
     status === 'open' ? '#22C55E' : status === 'opening_soon' ? '#F59E0B' : '#6B7280';
 
-  const nameColor =
-    status === 'closed'
-      ? isDarkMode ? '#6B7280' : '#AEAEB2'
-      : isDarkMode ? '#fff' : '#000';
+  const statusBg =
+    status === 'open'
+      ? 'rgba(34,197,94,0.15)'
+      : status === 'opening_soon'
+        ? 'rgba(245,158,11,0.15)'
+        : 'rgba(107,114,128,0.15)';
 
-  const dividerColor = isDarkMode ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)';
+  const statusLabel =
+    status === 'open' ? 'Open' : status === 'opening_soon' ? 'Soon' : 'Closed';
 
-  const getStatusText = () => {
+  const getTimeText = () => {
     if (status === 'open') {
       const msg = getLocationTimeMessage(locationData, currentTime);
       return msg.replace('Open for ', 'Closes in ');
@@ -78,35 +77,33 @@ const LocationItem = ({ location, currentTime }: LocationItemProps) => {
       const nextTime = getNextOpenTimeFormatted(locationData, currentTime);
       return nextTime ? `Opens ${nextTime}` : 'Opening soon';
     }
-    return 'Closed';
+    return null;
   };
 
+  const cardBg = isDarkMode ? '#111' : '#F5F5F7';
+  const nameColor = status === 'closed'
+    ? isDarkMode ? '#555' : '#AEAEB2'
+    : isDarkMode ? '#fff' : '#000';
+  const typeColor = isDarkMode ? '#555' : '#AEAEB2';
+  const timeText = getTimeText();
+
   return (
-    <Reanimated.View style={animatedStyle}>
+    <Reanimated.View style={[animatedStyle, { marginBottom: 8 }]}>
       <Pressable
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         onPress={handlePress}
         style={{
+          backgroundColor: cardBg,
+          borderRadius: 14,
+          paddingVertical: 14,
+          paddingHorizontal: 16,
           flexDirection: 'row',
           alignItems: 'center',
-          paddingVertical: 14,
-          paddingHorizontal: 4,
-          gap: 10,
+          gap: 12,
         }}
       >
-        {/* Status dot */}
-        <View
-          style={{
-            width: 7,
-            height: 7,
-            borderRadius: 3.5,
-            backgroundColor: statusColor,
-            flexShrink: 0,
-          }}
-        />
-
-        {/* Info */}
+        {/* Text */}
         <View style={{ flex: 1 }}>
           <Text
             style={{ fontSize: 16, fontWeight: '600', color: nameColor, letterSpacing: -0.2 }}
@@ -114,29 +111,34 @@ const LocationItem = ({ location, currentTime }: LocationItemProps) => {
           >
             {displayName}
           </Text>
-          <Text
-            style={{
-              fontSize: 13,
-              color: status === 'closed' ? (isDarkMode ? '#555' : '#AEAEB2') : statusColor,
-              fontWeight: '500',
-              marginTop: 2,
-            }}
-          >
-            {getStatusText()}
+          {location.type && (
+            <Text style={{ fontSize: 12, color: typeColor, marginTop: 2 }}>
+              {location.type}
+            </Text>
+          )}
+          {timeText && (
+            <Text style={{ fontSize: 12, color: statusColor, fontWeight: '500', marginTop: 4 }}>
+              {timeText}
+            </Text>
+          )}
+        </View>
+
+        {/* Status pill */}
+        <View
+          style={{
+            backgroundColor: statusBg,
+            paddingHorizontal: 10,
+            paddingVertical: 4,
+            borderRadius: 20,
+          }}
+        >
+          <Text style={{ fontSize: 12, fontWeight: '600', color: statusColor }}>
+            {statusLabel}
           </Text>
         </View>
 
-        <ChevronRight size={14} color={isDarkMode ? '#3A3A3C' : '#D1D1D6'} />
+        <ChevronRight size={14} color={isDarkMode ? '#3A3A3C' : '#C7C7CC'} />
       </Pressable>
-
-      {/* Hairline divider */}
-      <View
-        style={{
-          height: StyleSheet.hairlineWidth,
-          backgroundColor: dividerColor,
-          marginLeft: 17,
-        }}
-      />
     </Reanimated.View>
   );
 };
