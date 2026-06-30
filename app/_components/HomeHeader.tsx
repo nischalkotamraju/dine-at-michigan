@@ -1,11 +1,8 @@
-import { addDays, format, isSameDay, subDays } from 'date-fns';
-import * as Haptics from 'expo-haptics';
 import { Bell } from 'lucide-react-native';
-import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Image, Text, TouchableOpacity, View } from 'react-native';
 import FilterBar from '~/components/FilterBar';
 import { useSettingsStore } from '~/store/useSettingsStore';
 import { COLORS } from '~/utils/colors';
-import { getCentralTimeDate } from '~/utils/date';
 import { cn } from '~/utils/utils';
 import type * as schema from '../../services/database/schema';
 import type { FilterType } from '../(tabs)';
@@ -17,8 +14,6 @@ type HomeHeaderProps = {
   selectedFilter: string;
   setSelectedFilter: (filter: FilterType) => void;
   locationTypes: schema.LocationType[];
-  selectedDate: string;
-  onDateChange: (date: string) => void;
 };
 
 const getGreeting = (hour: number) => {
@@ -32,8 +27,6 @@ const HomeHeader = ({
   selectedFilter,
   setSelectedFilter,
   locationTypes,
-  selectedDate,
-  onDateChange,
 }: HomeHeaderProps) => {
   const isDarkMode = useSettingsStore((state) => state.isDarkMode);
 
@@ -43,9 +36,6 @@ const HomeHeader = ({
       .sort((a, b) => a.display_order - b.display_order)
       .map((type) => ({ id: type.name, title: type.name })),
   ];
-
-  const today = getCentralTimeDate();
-  const dates = Array.from({ length: 5 }, (_, i) => addDays(subDays(today, 2), i));
 
   const textColor = isDarkMode ? '#fff' : '#111';
   const subColor = isDarkMode ? '#9CA3AF' : '#6B7280';
@@ -79,68 +69,6 @@ const HomeHeader = ({
           Here's what's open today.
         </Text>
       </View>
-
-      {/* Date strip */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 0, gap: 6 }}
-      >
-        {dates.map((d) => {
-          const dateStr = format(d, 'yyyy-MM-dd');
-          const isSelected = dateStr === selectedDate;
-          const isToday = isSameDay(d, today);
-
-          return (
-            <TouchableOpacity
-              key={dateStr}
-              onPress={() => {
-                onDateChange(dateStr);
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              }}
-              style={{
-                alignItems: 'center',
-                paddingVertical: 8,
-                paddingHorizontal: 14,
-                borderRadius: 12,
-                backgroundColor: isSelected ? '#00274C' : isDarkMode ? '#262626' : '#F3F4F6',
-                minWidth: 58,
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: 11,
-                  fontWeight: '600',
-                  color: isSelected ? '#FFCB05' : isDarkMode ? '#9CA3AF' : '#6B7280',
-                }}
-              >
-                {format(d, 'EEE')}
-              </Text>
-              <Text
-                style={{
-                  fontSize: 15,
-                  fontWeight: '700',
-                  marginTop: 2,
-                  color: isSelected ? '#fff' : isDarkMode ? '#fff' : '#111',
-                }}
-              >
-                {format(d, 'd')}
-              </Text>
-              {isToday && !isSelected && (
-                <View
-                  style={{
-                    width: 4,
-                    height: 4,
-                    borderRadius: 2,
-                    backgroundColor: COLORS['um-maize'],
-                    marginTop: 3,
-                  }}
-                />
-              )}
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
 
       {/* Filter bar */}
       <View style={{ paddingHorizontal: 0 }}>

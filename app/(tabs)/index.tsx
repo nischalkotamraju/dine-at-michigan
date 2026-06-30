@@ -98,7 +98,6 @@ export type DrizzleDB = ExpoSQLiteDatabase<typeof schema> & {
 export default function Home() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [selectedFilter, setSelectedFilter] = useState<FilterType>('all');
-  const [selectedDate, setSelectedDate] = useState(getTodayInCentralTime());
   const [refreshing, setRefreshing] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [layoutLoaded, setLayoutLoaded] = useState(false);
@@ -337,8 +336,6 @@ export default function Home() {
                 selectedFilter={selectedFilter}
                 setSelectedFilter={setSelectedFilter}
                 locationTypes={locationTypes}
-                selectedDate={selectedDate}
-                onDateChange={setSelectedDate}
               />
             }
           />
