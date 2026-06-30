@@ -62,11 +62,6 @@ export default function HomeFilterModal() {
 
   return (
     <View style={{ flex: 1, backgroundColor: bg, paddingBottom: insets.bottom }}>
-      {/* Handle */}
-      <View style={{ alignItems: 'center', paddingTop: 10, paddingBottom: 4 }}>
-        <View style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: isDarkMode ? '#555' : '#D1D1D6' }} />
-      </View>
-
       {/* Title */}
       <View style={{ paddingHorizontal: PADDING, paddingTop: 16, paddingBottom: 20 }}>
         <Text style={{ fontSize: 22, fontWeight: '700', color: isDarkMode ? '#fff' : '#000' }}>

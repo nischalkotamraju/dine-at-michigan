@@ -110,7 +110,7 @@ const AppContent = () => {
                       options={{
                         presentation: 'formSheet',
                         headerShown: false,
-                        sheetAllowedDetents: [0.55],
+                        sheetAllowedDetents: [0.75],
                         sheetInitialDetentIndex: 0,
                         sheetGrabberVisible: true,
                       }}
