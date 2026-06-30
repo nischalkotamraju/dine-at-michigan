@@ -34,17 +34,7 @@ const HomeHeader = ({ currentTime, locationTypes }: HomeHeaderProps) => {
       {/* Top bar */}
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          {/* App icon mark */}
-          <View style={{
-            width: 38,
-            height: 38,
-            borderRadius: 10,
-            backgroundColor: '#00274C',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-            <Image source={require('../../assets/logo.png')} style={{ width: 26, height: 26 }} resizeMode="contain" />
-          </View>
+          <Image source={require('../../assets/logo.png')} style={{ width: 42, height: 42 }} resizeMode="contain" />
           <View>
             <Text style={{ fontSize: 15, fontWeight: '800', color: isDarkMode ? '#fff' : '#000', letterSpacing: -0.3 }}>
               Dine @ Michigan
