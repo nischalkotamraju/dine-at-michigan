@@ -63,7 +63,7 @@ export default function HomeFilterModal() {
   return (
     <View style={{ flex: 1, backgroundColor: bg, paddingBottom: insets.bottom }}>
       {/* Title */}
-      <View style={{ paddingHorizontal: PADDING, paddingTop: 16, paddingBottom: 20 }}>
+      <View style={{ paddingHorizontal: PADDING, paddingTop: 28, paddingBottom: 20 }}>
         <Text style={{ fontSize: 22, fontWeight: '700', color: isDarkMode ? '#fff' : '#000' }}>
           Filter Locations
         </Text>
