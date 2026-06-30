@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { Check, SlidersHorizontal, X } from 'lucide-react-native';
-import { useState } from 'react';
-import { Image, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, Image, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSettingsStore } from '~/store/useSettingsStore';
 import { COLORS } from '~/utils/colors';
@@ -32,6 +32,26 @@ const HomeHeader = ({
   const isDarkMode = useSettingsStore((state) => state.isDarkMode);
   const insets = useSafeAreaInsets();
   const [sheetVisible, setSheetVisible] = useState(false);
+  const [modalMounted, setModalMounted] = useState(false);
+  const backdropAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(300)).current;
+
+  useEffect(() => {
+    if (sheetVisible) {
+      setModalMounted(true);
+      Animated.parallel([
+        Animated.timing(backdropAnim, { toValue: 1, duration: 220, useNativeDriver: true }),
+        Animated.spring(slideAnim, { toValue: 0, damping: 22, stiffness: 280, mass: 0.8, useNativeDriver: true }),
+      ]).start();
+    } else {
+      Animated.parallel([
+        Animated.timing(backdropAnim, { toValue: 0, duration: 180, useNativeDriver: true }),
+        Animated.timing(slideAnim, { toValue: 300, duration: 200, useNativeDriver: true }),
+      ]).start(() => setModalMounted(false));
+    }
+  }, [sheetVisible]);
+
+  const closeSheet = () => setSheetVisible(false);
 
   const textColor = isDarkMode ? '#fff' : '#111';
   const subColor = isDarkMode ? '#9CA3AF' : '#6B7280';
@@ -53,7 +73,7 @@ const HomeHeader = ({
   const handleSelect = (id: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setSelectedFilter(id as FilterType);
-    setSheetVisible(false);
+    closeSheet();
   };
 
   return (
@@ -114,22 +134,24 @@ const HomeHeader = ({
 
       {/* Native modal sheet */}
       <Modal
-        visible={sheetVisible}
+        visible={modalMounted}
         transparent
-        animationType="slide"
+        animationType="none"
         presentationStyle="overFullScreen"
-        onRequestClose={() => setSheetVisible(false)}
+        onRequestClose={closeSheet}
       >
         {/* Backdrop */}
-        <Pressable
-          style={StyleSheet.absoluteFillObject}
-          onPress={() => setSheetVisible(false)}
-        >
-          <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(0,0,0,0.4)' }]} />
+        <Pressable style={StyleSheet.absoluteFillObject} onPress={closeSheet}>
+          <Animated.View
+            style={[
+              StyleSheet.absoluteFillObject,
+              { backgroundColor: 'rgba(0,0,0,0.4)', opacity: backdropAnim },
+            ]}
+          />
         </Pressable>
 
         {/* Sheet */}
-        <View
+        <Animated.View
           style={{
             position: 'absolute',
             bottom: 0,
@@ -139,6 +161,7 @@ const HomeHeader = ({
             borderTopLeftRadius: 16,
             borderTopRightRadius: 16,
             paddingBottom: insets.bottom + 8,
+            transform: [{ translateY: slideAnim }],
           }}
         >
           {/* Handle */}
@@ -184,7 +207,7 @@ const HomeHeader = ({
               </View>
             );
           })}
-        </View>
+        </Animated.View>
       </Modal>
     </View>
   );
