@@ -266,7 +266,7 @@ export default function Home() {
 
   const listData: ListRow[] = [];
   if (open.length > 0) {
-    listData.push({ type: 'header', label: 'OPEN NOW', color: '#22C55E' });
+    listData.push({ type: 'header', label: 'OPEN NOW', color: '#A5A508' });
     for (const item of open) listData.push({ type: 'location', item });
   }
   if (closed.length > 0) {
