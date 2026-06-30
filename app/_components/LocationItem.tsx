@@ -123,9 +123,9 @@ const LocationItem = ({ location, currentTime }: LocationItemProps) => {
           borderWidth: 1,
           borderColor,
           borderRadius: 14,
-          padding: 14,
+          padding: 12,
           marginBottom: 8,
-          gap: 14,
+          gap: 12,
         }}
       >
         {/* Icon */}

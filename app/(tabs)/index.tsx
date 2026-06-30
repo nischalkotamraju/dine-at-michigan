@@ -310,7 +310,7 @@ export default function Home() {
             renderItem={({ item }) => {
               if (item.type === 'header') {
                 return (
-                  <View style={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 6 }}>
+                  <View style={{ paddingHorizontal: 12, paddingTop: 16, paddingBottom: 6 }}>
                     <Text style={{ fontSize: 11, fontWeight: '700', color: item.color, letterSpacing: 0.8 }}>
                       {item.label}
                     </Text>
@@ -318,7 +318,7 @@ export default function Home() {
                 );
               }
               return (
-                <View style={{ paddingHorizontal: 16 }}>
+                <View style={{ paddingHorizontal: 12 }}>
                   <LocationItem
                     key={`${item.item.id}-${refreshKey}`}
                     location={item.item}
