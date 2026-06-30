@@ -88,13 +88,13 @@ const LocationItem = ({ location, currentTime }: LocationItemProps) => {
   const iconColor =
     status === 'open' ? '#22C55E' : status === 'opening_soon' ? '#F59E0B' : '#9CA3AF';
 
-  const cardBg = isDarkMode ? '#1E1E1E' : '#fff';
-  const borderColor = isDarkMode ? '#2a2a2a' : '#F0F0F0';
+  const cardBg = isDarkMode ? '#1C1C1E' : '#F2F2F7';
+  const dividerColor = isDarkMode ? '#2C2C2E' : '#E0E0E5';
   const nameColor =
     status === 'closed'
-      ? isDarkMode ? '#4B5563' : '#9CA3AF'
-      : isDarkMode ? '#fff' : '#111';
-  const typeColor = isDarkMode ? '#6B7280' : '#9CA3AF';
+      ? isDarkMode ? '#555' : '#AEAEB2'
+      : isDarkMode ? '#fff' : '#000';
+  const typeColor = isDarkMode ? '#636366' : '#8E8E93';
 
   // Status text
   const getStatusText = () => {
@@ -111,7 +111,7 @@ const LocationItem = ({ location, currentTime }: LocationItemProps) => {
   };
 
   return (
-    <Reanimated.View style={animatedStyle}>
+    <Reanimated.View style={[animatedStyle, { backgroundColor: cardBg }]}>
       <Pressable
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
@@ -119,52 +119,43 @@ const LocationItem = ({ location, currentTime }: LocationItemProps) => {
         style={{
           flexDirection: 'row',
           alignItems: 'center',
-          backgroundColor: cardBg,
-          borderWidth: 1,
-          borderColor,
-          borderRadius: 14,
-          padding: 12,
-          marginBottom: 8,
-          gap: 12,
+          paddingVertical: 14,
+          paddingHorizontal: 16,
+          gap: 14,
         }}
       >
         {/* Icon */}
         <View
           style={{
-            width: 44,
-            height: 44,
-            borderRadius: 12,
+            width: 40,
+            height: 40,
+            borderRadius: 10,
             backgroundColor: iconBg,
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          {getLocationIcon(location.type, iconColor)}
+          {getLocationIcon(location.type, iconColor, 18)}
         </View>
 
         {/* Info */}
         <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: 15, fontWeight: '700', color: nameColor }} numberOfLines={1}>
+          <Text style={{ fontSize: 16, fontWeight: '600', color: nameColor }} numberOfLines={1}>
             {displayName}
           </Text>
-          <Text style={{ fontSize: 12, color: typeColor, marginTop: 1 }}>{location.type}</Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4, gap: 5 }}>
-            <View
-              style={{
-                width: 6,
-                height: 6,
-                borderRadius: 3,
-                backgroundColor: statusColor,
-              }}
-            />
-            <Text style={{ fontSize: 12, color: statusColor, fontWeight: '500' }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 3, gap: 5 }}>
+            <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: statusColor }} />
+            <Text style={{ fontSize: 13, color: statusColor, fontWeight: '500' }}>
               {getStatusText()}
             </Text>
           </View>
         </View>
 
-        <ChevronRight size={18} color={isDarkMode ? '#4B5563' : '#D1D5DB'} />
+        <ChevronRight size={16} color={isDarkMode ? '#3A3A3C' : '#C7C7CC'} />
       </Pressable>
+
+      {/* Inset divider */}
+      <View style={{ height: 1, backgroundColor: dividerColor, marginLeft: 70 }} />
     </Reanimated.View>
   );
 };
