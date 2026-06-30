@@ -214,7 +214,7 @@ async function scrapeHall(hall, date, scraperApiKey, supabaseUrl, supabaseKey, l
 
   // 1. Fetch HTML from ScraperAPI, with 1 retry on 500 (1-2 subrequests)
   const target = `https://dining.umich.edu/menus-locations/dining-halls/${hall.slug}/?menuDate=${date}`;
-  const scraperUrl = `http://api.scraperapi.com/?api_key=${scraperApiKey}&url=${encodeURIComponent(target)}&render=true`;
+  const scraperUrl = `http://api.scraperapi.com/?api_key=${scraperApiKey}&url=${encodeURIComponent(target)}`;
   let res = await fetch(scraperUrl);
   if (!res.ok) {
     // Wait 3s and retry once
@@ -231,6 +231,7 @@ async function scrapeHall(hall, date, scraperApiKey, supabaseUrl, supabaseKey, l
   if (meals.length === 0) return { hall: hall.name, result: 'Closed today (no menu on page)' };
 
   // 2. Delete existing menus for this location+date (1 subrequest, cascades to categories/items)
+  // This ensures we never leave partial data (categories without food items)
   await sbFetch(supabaseUrl, supabaseKey, 'DELETE',
     `/menu?location_id=eq.${locationId}&date=eq.${date}`);
 

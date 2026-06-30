@@ -72,7 +72,8 @@ async function fetchInChunks<T extends TableTypeMapKeys>(
     const result = await supabase
       .from(tableName as TableTypeMapKeys)
       .select('*')
-      .in(column, chunk);
+      .in(column, chunk)
+      .limit(10000);
 
     if (result.error) {
       console.error(`❌ Error in chunk ${i + 1}/${chunks.length}:`, result.error);
@@ -139,7 +140,7 @@ const querySupabase = async (date?: string) => {
     ] = await Promise.all([
       supabase.from('location').select('*').then(r => { console.log('✅ location fetched', r.error?.message ?? r.data?.length); return r; }),
       supabase.from('location_type').select('*').then(r => { console.log('✅ location_type fetched', r.error?.message ?? r.data?.length); return r; }),
-      supabase.from('menu').select('*').then(r => { console.log('✅ menu fetched', r.error?.message ?? r.data?.length); return r; }),
+      supabase.from('menu').select('*').gte('date', (() => { const d = new Date(formattedDate); d.setDate(d.getDate() - 2); return d.toISOString().split('T')[0]; })()).lte('date', (() => { const d = new Date(formattedDate); d.setDate(d.getDate() + 3); return d.toISOString().split('T')[0]; })()).then(r => { console.log('✅ menu fetched', r.error?.message ?? r.data?.length); return r; }),
       supabase.from('app_information').select('*').then(r => { console.log('✅ app_information fetched', r.error?.message ?? r.data?.length); return r; }),
       supabase.from('notifications').select('*').then(r => { console.log('✅ notifications fetched', r.error?.message ?? r.data?.length); return r; }),
       supabase.from('notification_types').select('*').then(r => { console.log('✅ notification_types fetched', r.error?.message ?? r.data?.length); return r; }),
@@ -227,7 +228,7 @@ const querySupabase = async (date?: string) => {
     const menuCategoryIds = menuCategoryData.map((category) => category.id);
 
     // Fetch food items (with chunking to avoid 1000 item limit)
-    const foodItemResult = await fetchInChunks('food_item', 'menu_category_id', menuCategoryIds);
+    const foodItemResult = await fetchInChunks('food_item', 'menu_category_id', menuCategoryIds, 200);
 
     if (foodItemResult.error) {
       console.error('❌ Error fetching food_item:', foodItemResult.error);
