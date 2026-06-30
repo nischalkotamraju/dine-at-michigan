@@ -53,7 +53,7 @@ const HomeHeader = ({
   return (
     <View style={{ marginTop: 8, gap: 16 }}>
       {/* Top bar: logo + bell */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <Image source={icon} style={{ width: 36, height: 36 }} />
           <View>
@@ -71,7 +71,7 @@ const HomeHeader = ({
       </View>
 
       {/* Greeting */}
-      <View style={{ paddingHorizontal: 12 }}>
+      <View style={{ paddingHorizontal: 4 }}>
         <Text style={{ fontSize: 26, fontWeight: '800', color: textColor }}>
           {getGreeting(currentTime.getHours())}, Wolverine 👋
         </Text>
@@ -84,7 +84,7 @@ const HomeHeader = ({
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 12, gap: 6 }}
+        contentContainerStyle={{ paddingHorizontal: 4, gap: 6 }}
       >
         {dates.map((d) => {
           const dateStr = format(d, 'yyyy-MM-dd');
@@ -143,7 +143,7 @@ const HomeHeader = ({
       </ScrollView>
 
       {/* Filter bar */}
-      <View style={{ paddingHorizontal: 12 }}>
+      <View style={{ paddingHorizontal: 4 }}>
         <FilterBar
           selectedItem={selectedFilter}
           setSelectedItem={setSelectedFilter}
