@@ -55,7 +55,7 @@ const LocationItem = ({ location, currentTime }: LocationItemProps) => {
     }
   };
 
-  const statusColor = status === 'open' ? '#FFCB05' : isDarkMode ? '#5B8DB8' : '#00274C';
+  const statusColor = status === 'open' ? '#22C55E' : '#EF4444';
 
   const getTimeText = () => {
     if (status === 'open') {

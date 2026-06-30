@@ -266,11 +266,11 @@ export default function Home() {
 
   const listData: ListRow[] = [];
   if (open.length > 0) {
-    listData.push({ type: 'header', label: 'OPEN NOW', color: '#FFCB05' });
+    listData.push({ type: 'header', label: 'OPEN NOW', color: '#22C55E' });
     for (const item of open) listData.push({ type: 'location', item });
   }
   if (closed.length > 0) {
-    listData.push({ type: 'header', label: 'CLOSED', color: isDarkMode ? '#5B8DB8' : '#00274C' });
+    listData.push({ type: 'header', label: 'CLOSED', color: '#EF4444' });
     for (const item of closed) listData.push({ type: 'location', item });
   }
 
