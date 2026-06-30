@@ -50,8 +50,8 @@ export default function HomeFilterModal() {
     ...locationTypes.map((t) => ({ id: t.name, name: t.name })),
   ];
 
-  const bg = isDarkMode ? '#000' : '#F2F2F7';
-  const cardBg = isDarkMode ? '#1C1C1E' : '#fff';
+  const bg = isDarkMode ? '#1C1C1E' : '#F2F2F7';
+  const cardBg = isDarkMode ? '#2C2C2E' : '#fff';
   const subColor = isDarkMode ? '#636366' : '#8E8E93';
 
   const handleSelect = (id: string) => {
