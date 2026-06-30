@@ -108,9 +108,11 @@ const AppContent = () => {
                     <Stack.Screen
                       name="home-filter"
                       options={{
-                        presentation: 'modal',
+                        presentation: 'formSheet',
                         headerShown: false,
-                        animation: 'slide_from_bottom',
+                        sheetAllowedDetents: [0.55],
+                        sheetInitialDetentIndex: 0,
+                        sheetGrabberVisible: true,
                       }}
                     />
                   </Stack>
