@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
-import { UtensilsCrossed, SlidersHorizontal } from 'lucide-react-native';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { SlidersHorizontal } from 'lucide-react-native';
+import { Image, Text, TouchableOpacity, View } from 'react-native';
 import { useHomeFilterStore } from '~/store/useHomeFilterStore';
 import { useSettingsStore } from '~/store/useSettingsStore';
 import { COLORS } from '~/utils/colors';
@@ -43,7 +43,7 @@ const HomeHeader = ({ currentTime, locationTypes }: HomeHeaderProps) => {
             alignItems: 'center',
             justifyContent: 'center',
           }}>
-            <UtensilsCrossed size={20} color={COLORS['um-maize']} strokeWidth={2.2} />
+            <Image source={require('../../assets/logo.png')} style={{ width: 26, height: 26 }} resizeMode="contain" />
           </View>
           <View>
             <Text style={{ fontSize: 15, fontWeight: '800', color: isDarkMode ? '#fff' : '#000', letterSpacing: -0.3 }}>
