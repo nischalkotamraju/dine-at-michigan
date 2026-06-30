@@ -162,6 +162,24 @@ function formatTimeFromNumber(time: number, referenceDate: Date): string {
   return format(d, 'hh:mm a');
 }
 
+// Returns the next open time today as a formatted string (e.g. "9:00 AM"), or null if none.
+export function getNextOpenTimeFormatted(
+  locationData: schema.Location | null,
+  currentTime: Date = new Date(),
+): string | null {
+  const schedule = getTodaySchedule(locationData, currentTime);
+  if (!schedule || schedule.intervals.length === 0) return null;
+
+  const currentMinutes = currentTime.getHours() * 60 + currentTime.getMinutes();
+
+  const nextInterval = [...schedule.intervals]
+    .filter(({ openTime }) => convertToMinutes(openTime) > currentMinutes)
+    .sort((a, b) => convertToMinutes(a.openTime) - convertToMinutes(b.openTime))[0];
+
+  if (!nextInterval) return null;
+  return formatTimeFromNumber(nextInterval.openTime, currentTime);
+}
+
 // Mapping of full weekday names to their abbreviated forms.
 const dayAbbreviations: Record<WeekDay, string> = {
   Monday: 'M',

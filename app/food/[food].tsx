@@ -1,6 +1,5 @@
 import { FlashList } from '@shopify/flash-list';
 import { Stack, useLocalSearchParams } from 'expo-router';
-import { BicepsFlexed, Flame, Wheat } from 'lucide-react-native';
 import { usePostHog } from 'posthog-react-native';
 import { useEffect } from 'react';
 import { Text, View } from 'react-native';
@@ -14,7 +13,6 @@ import { COLORS } from '~/utils/colors';
 import { cn } from '~/utils/utils';
 import AllergenSection from './components/AllergenSection';
 import NutritionFooter from './components/NutritionFooter';
-import NutritionInfo from './components/NutritionInfo';
 import NutritionRow from './components/NutritionRow';
 
 const FoodScreen = () => {
@@ -38,151 +36,174 @@ const FoodScreen = () => {
 
   const analytics = getSafePostHog(usePostHog());
 
-  // Filter out serving size from nutrition data
-  const nutritionDataFiltered = nutritionData.filter((item) => item.key !== 'Serving Size');
+  // Filter out serving size from the table rows (shown separately)
+  const nutritionDataFiltered = nutritionData.filter(
+    (item) => item.key !== 'Serving Size' && item.key !== 'Calories',
+  );
 
-  // biome-ignorelint/correctness/useExhaustiveDependencies: analytics only
+  // biome-ignore lint/correctness/useExhaustiveDependencies: analytics only
   useEffect(() => {
-    analytics.screen(`${food}`, {
-      location,
-      menu,
-      category,
-    });
+    analytics.screen(`${food}`, { location, menu, category });
   }, []);
+
+  const bg = isDarkMode ? '#171717' : '#fff';
+  const textColor = isDarkMode ? '#fff' : '#111';
+  const subColor = isDarkMode ? '#9CA3AF' : '#6B7280';
+  const divider = isDarkMode ? '#2a2a2a' : '#F0F0F0';
+  const cardBg = isDarkMode ? '#1E1E1E' : '#F9F9F9';
+  const border = isDarkMode ? '#333' : '#E5E7EB';
+
+  const cal = foodItem?.nutrition?.calories;
+  const protein = foodItem?.nutrition?.protein;
+  const carbs = foodItem?.nutrition?.total_carbohydrates;
+  const fat = foodItem?.nutrition?.total_fat;
+
   return (
     <SheetProvider context="food">
-      <View style={{ flex: 1, backgroundColor: isDarkMode ? '#171717' : '#fff' }}>
+      <View style={{ flex: 1, backgroundColor: bg }}>
         <Stack.Screen options={{ title: 'Food' }} />
-        {/* Pull Down Indicator (outside FlashList) */}
-        <View
-          style={{
-            alignItems: 'center',
-            paddingTop: 8,
-            paddingBottom: 8,
-            backgroundColor: isDarkMode ? '#171717' : '#fff',
-          }}
-        >
-          <View
-            style={{
-              width: 40,
-              height: 5,
-              borderRadius: 2.5,
-              backgroundColor: isDarkMode ? '#fff' : '#F0F0F0',
-            }}
-          />
+
+        {/* Pull-down indicator */}
+        <View style={{ alignItems: 'center', paddingTop: 8, paddingBottom: 4, backgroundColor: bg }}>
+          <View style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: isDarkMode ? '#333' : '#E5E7EB' }} />
         </View>
+
         <Container disableInsets className="mx-0 mt-2">
           <FlashList
             estimatedItemSize={32}
             data={nutritionDataFiltered}
             renderItem={({ item }) => <NutritionRow item={item} isDarkMode={isDarkMode} />}
             ListHeaderComponent={
-              <View className="mx-6 mt-6 flex gap-y-5">
+              <View style={{ paddingHorizontal: 24, paddingTop: 16, gap: 16 }}>
                 <TopBar variant="food" />
 
                 {foodItem && (
-                  <View>
-                    <Text
-                      className={cn(
-                        'font-extrabold font-sans text-3xl',
-                        isDarkMode ? 'text-white' : 'text-black',
+                  <>
+                    {/* Title + dietary badges */}
+                    <View>
+                      <Text style={{ fontSize: 28, fontWeight: '800', color: textColor }}>
+                        {foodItem.name}
+                      </Text>
+                      {dietaryList.length > 0 && (
+                        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+                          {dietaryList.map((d) => (
+                            <View
+                              key={d}
+                              style={{
+                                backgroundColor: COLORS['um-maize'],
+                                borderRadius: 20,
+                                paddingHorizontal: 10,
+                                paddingVertical: 3,
+                              }}
+                            >
+                              <Text style={{ fontSize: 11, fontWeight: '700', color: '#00274C' }}>
+                                {d}
+                              </Text>
+                            </View>
+                          ))}
+                        </View>
                       )}
-                    >
-                      {foodItem.name}
-                    </Text>
-
-                    <View className="flex-row gap-x-2">
-                      <NutritionInfo
-                        icon={
-                          <Flame
-                            fill={COLORS['um-maize']}
-                            color={COLORS['um-maize']}
-                            size={16}
-                          />
-                        }
-                        value={foodItem.nutrition?.calories != null ? `${foodItem.nutrition.calories} kcal` : '— kcal'}
-                        isDarkMode={isDarkMode}
-                      />
-                      <NutritionInfo
-                        icon={
-                          <BicepsFlexed
-                            fill={COLORS['um-maize']}
-                            color={COLORS['um-maize']}
-                            size={16}
-                          />
-                        }
-                        value={foodItem.nutrition?.protein != null ? `${foodItem.nutrition.protein} Protein` : '— Protein'}
-                        isDarkMode={isDarkMode}
-                      />
-                      <NutritionInfo
-                        icon={
-                          <Wheat
-                            fill={COLORS['um-maize']}
-                            color={COLORS['um-maize']}
-                            size={16}
-                          />
-                        }
-                        value={foodItem.nutrition?.total_carbohydrates != null ? `${foodItem.nutrition.total_carbohydrates} Carbs` : '— Carbs'}
-                        isDarkMode={isDarkMode}
-                      />
                     </View>
 
-                    {hasAllergens && (
-                      <View className="mt-3 flex-col justify-center gap-1">
+                    {/* Large calorie display */}
+                    <View style={{ alignItems: 'center', paddingVertical: 8 }}>
+                      <Text style={{ fontSize: 72, fontWeight: '800', color: textColor, lineHeight: 76 }}>
+                        {cal ?? '—'}
+                      </Text>
+                      <Text style={{ fontSize: 14, color: subColor, fontWeight: '500', marginTop: 4 }}>
+                        Calories
+                      </Text>
+                    </View>
+
+                    {/* Macro row */}
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        backgroundColor: cardBg,
+                        borderRadius: 14,
+                        borderWidth: 1,
+                        borderColor: border,
+                        overflow: 'hidden',
+                      }}
+                    >
+                      {[
+                        { label: 'Protein', value: protein, unit: 'g' },
+                        { label: 'Carbs', value: carbs, unit: 'g' },
+                        { label: 'Fat', value: fat, unit: 'g' },
+                      ].map(({ label, value, unit }, idx, arr) => (
+                        <View
+                          key={label}
+                          style={{
+                            flex: 1,
+                            alignItems: 'center',
+                            paddingVertical: 14,
+                            borderRightWidth: idx < arr.length - 1 ? 1 : 0,
+                            borderRightColor: border,
+                          }}
+                        >
+                          <Text style={{ fontSize: 20, fontWeight: '700', color: textColor }}>
+                            {value != null ? `${value}${unit}` : '—'}
+                          </Text>
+                          <Text style={{ fontSize: 12, color: subColor, marginTop: 2 }}>{label}</Text>
+                        </View>
+                      ))}
+                    </View>
+
+                    {/* Allergen badges */}
+                    {hasAllergens && allergenList.length > 0 && (
+                      <View>
                         <AllergenSection
                           title="Allergens:"
                           items={allergenList}
-                          showTitle={allergenList.length > 0}
-                          isDarkMode={isDarkMode}
-                        />
-                        <AllergenSection
-                          title="Dietary:"
-                          items={dietaryList}
-                          showTitle={dietaryList.length > 0}
+                          showTitle
                           isDarkMode={isDarkMode}
                         />
                       </View>
                     )}
 
-                    <View
-                      className={cn(
-                        'my-4 w-full border-b',
-                        isDarkMode ? 'border-neutral-800' : 'border-b-ut-grey/15',
+                    {/* Nutrition Facts table */}
+                    <View style={{ marginTop: 4 }}>
+                      <Text style={{ fontSize: 20, fontWeight: '800', color: textColor, marginBottom: 8 }}>
+                        Nutrition Facts
+                      </Text>
+                      {/* Serving size row */}
+                      {foodItem.nutrition?.serving_size && (
+                        <View
+                          style={{
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            paddingVertical: 8,
+                            borderBottomWidth: 1,
+                            borderBottomColor: divider,
+                          }}
+                        >
+                          <Text style={{ fontWeight: '600', color: textColor }}>Serving Size</Text>
+                          <Text style={{ color: subColor }}>{foodItem.nutrition.serving_size}</Text>
+                        </View>
                       )}
-                    />
-
-                    <Text
-                      className={cn(
-                        'mb-2 font-bold text-2xl',
-                        isDarkMode ? 'text-white' : 'text-black',
+                      {/* Calories row */}
+                      {cal != null && (
+                        <View
+                          style={{
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            paddingVertical: 8,
+                            borderBottomWidth: 1,
+                            borderBottomColor: divider,
+                          }}
+                        >
+                          <Text style={{ fontWeight: '700', color: textColor }}>Calories</Text>
+                          <Text style={{ fontWeight: '700', color: textColor }}>{cal} kcal</Text>
+                        </View>
                       )}
-                    >
-                      Nutrition Facts
-                    </Text>
-
-                    <View className="mb-2">
-                      <View className="mb-2 flex-row justify-between">
-                        <Text className={cn('font-bold', isDarkMode ? 'text-white' : 'text-black')}>
-                          Serving Size
-                        </Text>
-                        <Text className={cn('font-bold', isDarkMode ? 'text-white' : 'text-black')}>
-                          {foodItem.nutrition?.serving_size}
-                        </Text>
-                      </View>
-                      <View
-                        className={cn(
-                          'w-full border-b',
-                          isDarkMode ? 'border-neutral-800' : 'border-b-ut-grey/15',
-                        )}
-                      />
                     </View>
-                  </View>
+                  </>
                 )}
               </View>
             }
             ListFooterComponent={
-              foodItem && (
-                <View className="px-6 pb-28">
+              foodItem ? (
+                <View style={{ paddingHorizontal: 24, paddingBottom: 60 }}>
                   <NutritionFooter
                     ingredients={foodItem.nutrition?.ingredients as string}
                     allergens={allergenList}
@@ -190,7 +211,7 @@ const FoodScreen = () => {
                     isDarkMode={isDarkMode}
                   />
                 </View>
-              )
+              ) : null
             }
           />
         </Container>

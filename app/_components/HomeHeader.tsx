@@ -1,88 +1,30 @@
+import { addDays, format, isSameDay, subDays } from 'date-fns';
 import * as Haptics from 'expo-haptics';
-import { router } from 'expo-router';
-import { ChefHat, Heart, type LucideIcon } from 'lucide-react-native';
-import { Pressable, Text, View } from 'react-native';
-import Reanimated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import { Bell } from 'lucide-react-native';
+import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import FilterBar from '~/components/FilterBar';
-import TopBar from '~/components/TopBar';
 import { useSettingsStore } from '~/store/useSettingsStore';
-import { getColor } from '~/utils/colors';
-import { timeOfDay } from '~/utils/time';
+import { COLORS } from '~/utils/colors';
+import { getCentralTimeDate } from '~/utils/date';
 import { cn } from '~/utils/utils';
 import type * as schema from '../../services/database/schema';
 import type { FilterType } from '../(tabs)';
+
+const icon = require('../../assets/image.png');
 
 type HomeHeaderProps = {
   currentTime: Date;
   selectedFilter: string;
   setSelectedFilter: (filter: FilterType) => void;
   locationTypes: schema.LocationType[];
+  selectedDate: string;
+  onDateChange: (date: string) => void;
 };
 
-interface QuickLinksCardProps {
-  title: string;
-  description: string;
-  Icon: LucideIcon;
-  onPress: () => void;
-  isDarkMode: boolean;
-}
-
-const QuickLinksCard = ({ title, description, Icon, onPress, isDarkMode }: QuickLinksCardProps) => {
-  const scale = useSharedValue(1);
-  const opacity = useSharedValue(1);
-
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ scale: scale.value }],
-      opacity: opacity.value,
-    };
-  });
-
-  const handlePressIn = () => {
-    scale.value = withSpring(0.95, { damping: 15, stiffness: 400 });
-    opacity.value = withSpring(0.8, { damping: 15, stiffness: 400 });
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  };
-
-  const handlePressOut = () => {
-    scale.value = withSpring(1, { damping: 15, stiffness: 400 });
-    opacity.value = withSpring(1, { damping: 15, stiffness: 400 });
-  };
-
-  return (
-    <Reanimated.View
-      className={cn(
-        'flex-1 rounded-lg px-2 py-3',
-        isDarkMode ? 'bg-neutral-800' : 'border border-gray-200 bg-white',
-        'shadow-sm',
-      )}
-      style={animatedStyle}
-    >
-      <Pressable
-        className="flex-row items-center"
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        onPress={onPress}
-      >
-        <View
-          className={cn(
-            'mr-3 h-10 w-10 items-center justify-center rounded-full',
-            isDarkMode ? 'bg-neutral-700' : 'bg-orange-100',
-          )}
-        >
-          <Icon size={20} color={getColor('um-maize', false)} />
-        </View>
-        <View className="flex-1">
-          <Text className={cn('font-bold text-sm', isDarkMode ? 'text-gray-100' : 'text-gray-800')}>
-            {title}
-          </Text>
-          <Text className={cn('text-xs', isDarkMode ? 'text-gray-400' : 'text-gray-500')}>
-            {description}
-          </Text>
-        </View>
-      </Pressable>
-    </Reanimated.View>
-  );
+const getGreeting = (hour: number) => {
+  if (hour < 12) return 'Good morning';
+  if (hour < 17) return 'Good afternoon';
+  return 'Good evening';
 };
 
 const HomeHeader = ({
@@ -90,86 +32,118 @@ const HomeHeader = ({
   selectedFilter,
   setSelectedFilter,
   locationTypes,
+  selectedDate,
+  onDateChange,
 }: HomeHeaderProps) => {
   const isDarkMode = useSettingsStore((state) => state.isDarkMode);
 
-  // Generate filter items dynamically from location types, sorted by display_order
   const filterItems = [
     { id: 'all', title: 'All' },
     ...locationTypes
       .sort((a, b) => a.display_order - b.display_order)
-      .map((type) => ({
-        id: type.name,
-        title: type.name,
-      })),
+      .map((type) => ({ id: type.name, title: type.name })),
   ];
 
-  const getGreetingMessage = () => {
-    const hour = currentTime.getHours();
-    if (hour < 11) {
-      return 'Good Morning! ☀️';
-    } else if (hour < 18) {
-      return 'Good Afternoon! 🌤️';
-    } else {
-      return 'Good Evening! 🌙';
-    }
-  };
+  const today = getCentralTimeDate();
+  const dates = Array.from({ length: 5 }, (_, i) => addDays(subDays(today, 2), i));
 
-  const getSubtitleMessage = () => {
-    switch (timeOfDay(currentTime)) {
-      case 'morning':
-        return 'Breakfast is served.';
-      case 'afternoon':
-        return 'Lunch is served.';
-      case 'evening':
-        return 'Dinner is served.';
-      default:
-        return '';
-    }
-  };
+  const textColor = isDarkMode ? '#fff' : '#111';
+  const subColor = isDarkMode ? '#9CA3AF' : '#6B7280';
 
   return (
-    <View className="mt-6 flex gap-y-5">
-      <TopBar />
-
-      <View className="gap-y-4">
-        <View>
-          <Text
-            className={cn(
-              'font-extrabold font-sans text-3xl',
-              isDarkMode ? 'text-white' : 'text-gray-900',
-            )}
-          >
-            {getGreetingMessage()}
-          </Text>
-          <View className="flex-row items-center justify-between">
-            <Text className={cn('font-medium', isDarkMode ? 'text-gray-300' : 'text-ut-grey')}>
-              {getSubtitleMessage()}
+    <View style={{ marginTop: 8, gap: 16 }}>
+      {/* Top bar: logo + bell */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <Image source={icon} style={{ width: 36, height: 36 }} />
+          <View>
+            <Text style={{ fontSize: 10, fontWeight: '700', color: COLORS['um-maize'], letterSpacing: 1 }}>
+              DINE @
+            </Text>
+            <Text style={{ fontSize: 10, fontWeight: '700', color: COLORS['um-maize'], letterSpacing: 1, marginTop: -2 }}>
+              MICHIGAN
             </Text>
           </View>
         </View>
+        <TouchableOpacity onPress={() => {}}>
+          <Bell size={22} color={isDarkMode ? '#9CA3AF' : '#6B7280'} />
+        </TouchableOpacity>
+      </View>
 
-        <View className="flex-row gap-3">
-          <QuickLinksCard
-            title="Favorites"
-            description="Your saved meals"
-            Icon={Heart}
-            isDarkMode={isDarkMode}
-            onPress={() => {
-              router.push('/favorites');
-            }}
-          />
-          <QuickLinksCard
-            title="Meal Plan"
-            description="Your planned meals"
-            Icon={ChefHat}
-            isDarkMode={isDarkMode}
-            onPress={() => {
-              router.push('/meal-plan');
-            }}
-          />
-        </View>
+      {/* Greeting */}
+      <View style={{ paddingHorizontal: 20 }}>
+        <Text style={{ fontSize: 26, fontWeight: '800', color: textColor }}>
+          {getGreeting(currentTime.getHours())}, Wolverine 👋
+        </Text>
+        <Text style={{ fontSize: 14, color: subColor, marginTop: 2 }}>
+          Here's what's open today.
+        </Text>
+      </View>
 
+      {/* Date strip */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: 16, gap: 6 }}
+      >
+        {dates.map((d) => {
+          const dateStr = format(d, 'yyyy-MM-dd');
+          const isSelected = dateStr === selectedDate;
+          const isToday = isSameDay(d, today);
+
+          return (
+            <TouchableOpacity
+              key={dateStr}
+              onPress={() => {
+                onDateChange(dateStr);
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              }}
+              style={{
+                alignItems: 'center',
+                paddingVertical: 8,
+                paddingHorizontal: 14,
+                borderRadius: 12,
+                backgroundColor: isSelected ? '#00274C' : isDarkMode ? '#262626' : '#F3F4F6',
+                minWidth: 58,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontWeight: '600',
+                  color: isSelected ? '#FFCB05' : isDarkMode ? '#9CA3AF' : '#6B7280',
+                }}
+              >
+                {format(d, 'EEE')}
+              </Text>
+              <Text
+                style={{
+                  fontSize: 15,
+                  fontWeight: '700',
+                  marginTop: 2,
+                  color: isSelected ? '#fff' : isDarkMode ? '#fff' : '#111',
+                }}
+              >
+                {format(d, 'd')}
+              </Text>
+              {isToday && !isSelected && (
+                <View
+                  style={{
+                    width: 4,
+                    height: 4,
+                    borderRadius: 2,
+                    backgroundColor: COLORS['um-maize'],
+                    marginTop: 3,
+                  }}
+                />
+              )}
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+
+      {/* Filter bar */}
+      <View style={{ paddingHorizontal: 20 }}>
         <FilterBar
           selectedItem={selectedFilter}
           setSelectedItem={setSelectedFilter}

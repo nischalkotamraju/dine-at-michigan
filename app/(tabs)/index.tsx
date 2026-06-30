@@ -23,7 +23,7 @@ import { useOnboardingStore } from '~/store/useOnboardingStore';
 import { useSettingsStore } from '~/store/useSettingsStore';
 import { COLORS } from '~/utils/colors';
 import { getTodayInCentralTime } from '~/utils/date';
-import { getLocationOpenStatus } from '~/utils/locationStatus';
+import { getDetailedLocationStatus } from '~/utils/locationStatus';
 import { fetchMenuData } from '~/utils/queries';
 import { cn } from '~/utils/utils';
 import * as schema from '../../services/database/schema';
@@ -44,52 +44,51 @@ SplashScreen.setOptions({
 // Types
 export type FilterType = 'all' | string;
 
-const filterAndSortLocations = (
+type SectionedLocations = {
+  open: schema.LocationWithType[];
+  openingSoon: schema.LocationWithType[];
+  closed: schema.LocationWithType[];
+};
+
+const sectionAndFilterLocations = (
   locations: schema.LocationWithType[],
   locationTypes: schema.LocationType[],
   filter: FilterType,
   db: DrizzleDB,
   currentTime: Date,
-) => {
-  // First filter by type
-  let filteredLocations = locations;
+): SectionedLocations => {
+  let filtered = locations;
   if (filter !== 'all') {
-    const targetType = locationTypes.find((type) => type.name === filter);
-    if (targetType) {
-      filteredLocations = locations.filter((location) => location.type_id === targetType.id);
-    }
+    const targetType = locationTypes.find((t) => t.name === filter);
+    if (targetType) filtered = locations.filter((l) => l.type_id === targetType.id);
   }
 
-  // Then sort by open/closed status while maintaining original order within each group
-  const openLocations: schema.LocationWithType[] = [];
-  const closedLocations: schema.LocationWithType[] = [];
-
-  // Get today's date for menu checking
   const todayDate = getTodayInCentralTime();
+  const open: schema.LocationWithType[] = [];
+  const openingSoon: schema.LocationWithType[] = [];
+  const closed: schema.LocationWithType[] = [];
 
-  filteredLocations.forEach((location) => {
-    // Get location data for each location to determine if it's open
+  for (const location of filtered) {
     const locationData = db
       .select()
       .from(schema.location)
       .where(eq(schema.location.id, location.id))
       .get();
-    if (!locationData) {
-      // count as closed, todo: log error
-      closedLocations.push(location);
-      return;
-    }
-    const isOpen = getLocationOpenStatus(location, locationData, db, currentTime, todayDate);
 
-    if (isOpen) {
-      openLocations.push(location);
-    } else {
-      closedLocations.push(location);
-    }
-  });
+    const status = getDetailedLocationStatus(
+      location,
+      locationData ?? null,
+      db,
+      currentTime,
+      todayDate,
+    );
 
-  // Return open locations first, then closed locations
-  return [...openLocations, ...closedLocations];
+    if (status === 'open') open.push(location);
+    else if (status === 'opening_soon') openingSoon.push(location);
+    else closed.push(location);
+  }
+
+  return { open, openingSoon, closed };
 };
 
 export type DrizzleDB = ExpoSQLiteDatabase<typeof schema> & {
@@ -99,6 +98,7 @@ export type DrizzleDB = ExpoSQLiteDatabase<typeof schema> & {
 export default function Home() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [selectedFilter, setSelectedFilter] = useState<FilterType>('all');
+  const [selectedDate, setSelectedDate] = useState(getTodayInCentralTime());
   const [refreshing, setRefreshing] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [layoutLoaded, setLayoutLoaded] = useState(false);
@@ -252,13 +252,32 @@ export default function Home() {
   const locations = data?.locations || [];
   const locationTypes = data?.locationTypes || [];
 
-  const filteredLocations = filterAndSortLocations(
+  const { open, openingSoon, closed } = sectionAndFilterLocations(
     locations,
     locationTypes,
     selectedFilter,
     drizzleDb,
     currentTime,
   );
+
+  // Build a flat list with section headers
+  type ListRow =
+    | { type: 'header'; label: string; color: string }
+    | { type: 'location'; item: schema.LocationWithType };
+
+  const listData: ListRow[] = [];
+  if (open.length > 0) {
+    listData.push({ type: 'header', label: 'OPEN NOW', color: '#22C55E' });
+    for (const item of open) listData.push({ type: 'location', item });
+  }
+  if (openingSoon.length > 0) {
+    listData.push({ type: 'header', label: 'OPENING SOON', color: '#F59E0B' });
+    for (const item of openingSoon) listData.push({ type: 'location', item });
+  }
+  if (closed.length > 0) {
+    listData.push({ type: 'header', label: 'CLOSED', color: isDarkMode ? '#6B7280' : '#9CA3AF' });
+    for (const item of closed) listData.push({ type: 'location', item });
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: isDarkMode ? '#171717' : '#fff' }}>
@@ -279,7 +298,7 @@ export default function Home() {
         ) : (
           <FlatList
             extraData={[currentTime, selectedFilter, refreshKey]}
-            data={filteredLocations}
+            data={listData}
             refreshControl={
               <RefreshControl
                 refreshing={refreshing}
@@ -287,18 +306,30 @@ export default function Home() {
                 tintColor={isDarkMode ? COLORS['um-grey-dark-mode'] : '#8E8E93'}
               />
             }
-            contentContainerClassName="flex gap-y-3 pb-8"
+            contentContainerStyle={{ paddingBottom: 32 }}
             renderItem={({ item }) => {
+              if (item.type === 'header') {
+                return (
+                  <View style={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 6 }}>
+                    <Text style={{ fontSize: 11, fontWeight: '700', color: item.color, letterSpacing: 0.8 }}>
+                      {item.label}
+                    </Text>
+                  </View>
+                );
+              }
               return (
-                <LocationItem
-                  key={`${item.id}-${refreshKey}`}
-                  location={item}
-                  currentTime={currentTime}
-                />
+                <View style={{ paddingHorizontal: 16 }}>
+                  <LocationItem
+                    key={`${item.item.id}-${refreshKey}`}
+                    location={item.item}
+                    currentTime={currentTime}
+                  />
+                </View>
               );
             }}
-            keyExtractor={(item) => item.id.toString()}
-            numColumns={1}
+            keyExtractor={(item, index) =>
+              item.type === 'header' ? `header-${item.label}` : `loc-${item.item.id}-${index}`
+            }
             showsVerticalScrollIndicator={false}
             ListHeaderComponent={
               <HomeHeader
@@ -306,6 +337,8 @@ export default function Home() {
                 selectedFilter={selectedFilter}
                 setSelectedFilter={setSelectedFilter}
                 locationTypes={locationTypes}
+                selectedDate={selectedDate}
+                onDateChange={setSelectedDate}
               />
             }
           />

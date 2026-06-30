@@ -1,14 +1,12 @@
 import * as Haptics from 'expo-haptics';
 import { Tabs } from 'expo-router';
-import { Bell, Cog, Home, MapPin } from 'lucide-react-native';
+import { Bookmark, ChefHat, Ellipsis, Home, Search } from 'lucide-react-native';
 
-import { useUnreadNotifications } from '~/hooks/useUnreadNotifications';
 import { useSettingsStore } from '~/store/useSettingsStore';
 import { COLORS } from '~/utils/colors';
 
 export default function Layout() {
   const isDarkMode = useSettingsStore((state) => state.isDarkMode);
-  const { unreadCount, hasUnread } = useUnreadNotifications();
 
   const handleTabPress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -41,52 +39,47 @@ export default function Layout() {
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color, size }) => <Home size={size} color={color} strokeWidth={1.2} />,
-          tabBarActiveBackgroundColor: 'rgba(191, 87, 0, 0.05)',
+          tabBarIcon: ({ color, size }) => <Home size={size} color={color} strokeWidth={1.5} />,
         }}
-        listeners={{
-          tabPress: handleTabPress,
-        }}
+        listeners={{ tabPress: handleTabPress }}
       />
       <Tabs.Screen
-        name="map"
+        name="search"
         options={{
-          title: 'Map',
-          tabBarIcon: ({ color, size }) => <MapPin size={size} color={color} strokeWidth={1.2} />,
-          tabBarActiveBackgroundColor: 'rgba(191, 87, 0, 0.05)',
+          title: 'Search',
+          tabBarIcon: ({ color, size }) => <Search size={size} color={color} strokeWidth={1.5} />,
         }}
-        listeners={{
-          tabPress: handleTabPress,
-        }}
+        listeners={{ tabPress: handleTabPress }}
       />
       <Tabs.Screen
-        name="notifications"
+        name="meal-plan"
         options={{
-          title: 'Notifications',
-          tabBarIcon: ({ color, size }) => <Bell size={size} color={color} strokeWidth={1.2} />,
-          tabBarActiveBackgroundColor: 'rgba(191, 87, 0, 0.05)',
-          tabBarBadge: hasUnread ? unreadCount : undefined,
-          tabBarBadgeStyle: {
-            backgroundColor: COLORS['um-maize'],
-            color: 'white',
-          },
+          title: 'Meal Plan',
+          tabBarIcon: ({ color, size }) => <ChefHat size={size} color={color} strokeWidth={1.5} />,
         }}
-        listeners={{
-          tabPress: handleTabPress,
+        listeners={{ tabPress: handleTabPress }}
+      />
+      <Tabs.Screen
+        name="saved"
+        options={{
+          title: 'Saved',
+          tabBarIcon: ({ color, size }) => <Bookmark size={size} color={color} strokeWidth={1.5} />,
         }}
+        listeners={{ tabPress: handleTabPress }}
+      />
+      <Tabs.Screen
+        name="more"
+        options={{
+          title: 'More',
+          tabBarIcon: ({ color, size }) => <Ellipsis size={size} color={color} strokeWidth={1.5} />,
+        }}
+        listeners={{ tabPress: handleTabPress }}
       />
 
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: 'Settings',
-          tabBarIcon: ({ color, size }) => <Cog size={size} color={color} strokeWidth={1.2} />,
-          tabBarActiveBackgroundColor: 'rgba(191, 87, 0, 0.05)',
-        }}
-        listeners={{
-          tabPress: handleTabPress,
-        }}
-      />
+      {/* Hide old screens from tab bar */}
+      <Tabs.Screen name="map" options={{ href: null }} />
+      <Tabs.Screen name="notifications" options={{ href: null }} />
+      <Tabs.Screen name="settings" options={{ href: null }} />
     </Tabs>
   );
 }

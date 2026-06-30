@@ -59,7 +59,7 @@ const LocationTopBar = () => {
         <TouchableOpacity
           onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            router.push(`/favorites`);
+            router.navigate('/(tabs)/saved');
           }}
         >
           <Heart size={20} color={isDarkMode ? COLORS['um-grey-dark-mode'] : COLORS['um-grey']} />
@@ -68,7 +68,7 @@ const LocationTopBar = () => {
         <TouchableOpacity
           onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            router.push(`/meal-plan`);
+            router.navigate('/(tabs)/meal-plan');
           }}
         >
           <ChefHat size={20} color={isDarkMode ? COLORS['um-grey-dark-mode'] : COLORS['um-grey']} />

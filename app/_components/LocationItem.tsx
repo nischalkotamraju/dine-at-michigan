@@ -1,87 +1,62 @@
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
-import { ChevronRight } from 'lucide-react-native';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, Easing, Pressable, Text, View } from 'react-native';
+import {
+  ChevronRight,
+  Coffee,
+  ShoppingBag,
+  ShoppingCart,
+  UtensilsCrossed,
+} from 'lucide-react-native';
+import { useEffect, useState } from 'react';
+import { Pressable, Text, View } from 'react-native';
 import Reanimated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 
 import { useDatabase } from '~/hooks/useDatabase';
 import { useLocationDetails } from '~/hooks/useLocationDetails';
 import type { LocationWithType } from '~/services/database/schema';
 import { useSettingsStore } from '~/store/useSettingsStore';
-import { getColor } from '~/utils/colors';
+import { COLORS } from '~/utils/colors';
 import { getTodayInCentralTime } from '~/utils/date';
-import { getLocationOpenStatus } from '~/utils/locationStatus';
+import { getDetailedLocationStatus } from '~/utils/locationStatus';
 import { useLocationName } from '~/utils/locations';
-import { getLocationTimeMessage } from '~/utils/time';
-import { cn } from '~/utils/utils';
+import { getLocationTimeMessage, getNextOpenTimeFormatted } from '~/utils/time';
 
 type LocationItemProps = {
   location: LocationWithType;
   currentTime: Date;
 };
 
+const getLocationIcon = (type: string | null, color: string, size = 20) => {
+  const t = (type ?? '').toLowerCase();
+  if (t.includes('cafeteria') || t.includes('cafe')) return <Coffee size={size} color={color} />;
+  if (t.includes('market') || t.includes('convenience')) return <ShoppingCart size={size} color={color} />;
+  if (t.includes('food court')) return <ShoppingBag size={size} color={color} />;
+  return <UtensilsCrossed size={size} color={color} />;
+};
+
 const LocationItem = ({ location, currentTime }: LocationItemProps) => {
-  const [open, setOpen] = useState(false);
-  const pingAnimation = useRef(new Animated.Value(0)).current;
+  const [status, setStatus] = useState<'open' | 'opening_soon' | 'closed'>('closed');
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
   const db = useDatabase();
-  const { useColloquialNames, isDarkMode, isColorBlindMode } = useSettingsStore();
+  const { useColloquialNames, isDarkMode } = useSettingsStore();
   const { locationData } = useLocationDetails(location.name ?? '');
   const displayName = useLocationName(location.name ?? '', useColloquialNames);
 
   useEffect(() => {
     const todayDate = getTodayInCentralTime();
-    const isOpen = getLocationOpenStatus(location, locationData, db, currentTime, todayDate);
-    setOpen(isOpen);
+    const s = getDetailedLocationStatus(location, locationData, db, currentTime, todayDate);
+    setStatus(s);
   }, [locationData, currentTime, db, location]);
 
-  const startPingAnimation = useCallback(() => {
-    // Create a looping animation that expands and fades
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pingAnimation, {
-          toValue: 1,
-          duration: 2000,
-          easing: Easing.out(Easing.ease),
-          useNativeDriver: true,
-          delay: 2000,
-        }),
-        Animated.timing(pingAnimation, {
-          toValue: 0,
-          duration: 0,
-          useNativeDriver: true,
-        }),
-      ]),
-    ).start();
-  }, [pingAnimation]);
-
-  useEffect(() => {
-    // Stop any running animation
-    pingAnimation.stopAnimation();
-    pingAnimation.setValue(0);
-
-    if (open) {
-      startPingAnimation();
-    }
-
-    return () => {
-      // Clean up animation on unmount
-      pingAnimation.stopAnimation();
-    };
-  }, [open, pingAnimation, startPingAnimation]);
-
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ scale: scale.value }],
-      opacity: opacity.value,
-    };
-  });
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+    opacity: opacity.value,
+  }));
 
   const handlePressIn = () => {
-    scale.value = withSpring(0.95, { damping: 15, stiffness: 400 });
-    opacity.value = withSpring(0.8, { damping: 15, stiffness: 400 });
+    scale.value = withSpring(0.97, { damping: 15, stiffness: 400 });
+    opacity.value = withSpring(0.85, { damping: 15, stiffness: 400 });
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
 
@@ -90,15 +65,49 @@ const LocationItem = ({ location, currentTime }: LocationItemProps) => {
     opacity.value = withSpring(1, { damping: 15, stiffness: 400 });
   };
 
-  const handlePress = async () => {
+  const handlePress = () => {
     if (locationData?.has_menus) {
-      if (router.canDismiss()) {
-        router.dismissAll();
-      }
+      if (router.canDismiss()) router.dismissAll();
       router.push(`/location/${location.name}`);
     } else {
       router.push(`/location_generic/${location.name}`);
     }
+  };
+
+  // Colors by status
+  const statusColor =
+    status === 'open' ? '#22C55E' : status === 'opening_soon' ? '#F59E0B' : '#9CA3AF';
+
+  const iconBg =
+    status === 'open'
+      ? isDarkMode ? 'rgba(34,197,94,0.15)' : 'rgba(34,197,94,0.1)'
+      : status === 'opening_soon'
+        ? isDarkMode ? 'rgba(245,158,11,0.15)' : 'rgba(245,158,11,0.1)'
+        : isDarkMode ? '#2a2a2a' : '#F3F4F6';
+
+  const iconColor =
+    status === 'open' ? '#22C55E' : status === 'opening_soon' ? '#F59E0B' : '#9CA3AF';
+
+  const cardBg = isDarkMode ? '#1E1E1E' : '#fff';
+  const borderColor = isDarkMode ? '#2a2a2a' : '#F0F0F0';
+  const nameColor =
+    status === 'closed'
+      ? isDarkMode ? '#4B5563' : '#9CA3AF'
+      : isDarkMode ? '#fff' : '#111';
+  const typeColor = isDarkMode ? '#6B7280' : '#9CA3AF';
+
+  // Status text
+  const getStatusText = () => {
+    if (status === 'open') {
+      const msg = getLocationTimeMessage(locationData, currentTime);
+      // "Open for X hours" → "Closes X:XX PM" style
+      return `Open · ${msg.replace('Open for ', 'Closes in ')}`;
+    }
+    if (status === 'opening_soon') {
+      const nextTime = getNextOpenTimeFormatted(locationData, currentTime);
+      return nextTime ? `Opens ${nextTime}` : 'Opening soon';
+    }
+    return 'Closed';
   };
 
   return (
@@ -107,90 +116,54 @@ const LocationItem = ({ location, currentTime }: LocationItemProps) => {
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         onPress={handlePress}
-        className={cn(
-          'mb-2 flex-row items-center justify-between rounded-lg p-4',
-          isDarkMode ? ' border-neutral-800 bg-neutral-800' : 'border border-ut-grey/15 bg-white',
-        )}
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          backgroundColor: cardBg,
+          borderWidth: 1,
+          borderColor,
+          borderRadius: 14,
+          padding: 14,
+          marginBottom: 8,
+          gap: 14,
+        }}
       >
-        <View className="flex-row items-center justify-center gap-x-4">
-          <View className="relative size-3">
+        {/* Icon */}
+        <View
+          style={{
+            width: 44,
+            height: 44,
+            borderRadius: 12,
+            backgroundColor: iconBg,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          {getLocationIcon(location.type, iconColor)}
+        </View>
+
+        {/* Info */}
+        <View style={{ flex: 1 }}>
+          <Text style={{ fontSize: 15, fontWeight: '700', color: nameColor }} numberOfLines={1}>
+            {displayName}
+          </Text>
+          <Text style={{ fontSize: 12, color: typeColor, marginTop: 1 }}>{location.type}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4, gap: 5 }}>
             <View
               style={{
-                width: '100%',
-                height: '100%',
-                borderRadius: 9999,
-                backgroundColor: open
-                  ? getColor('status-open', isColorBlindMode)
-                  : getColor('status-closed', isColorBlindMode),
-                shadowColor: open
-                  ? getColor('status-open', isColorBlindMode)
-                  : getColor('status-closed', isColorBlindMode),
-                shadowOpacity: 0.5,
-                shadowRadius: 4,
-                shadowOffset: { width: 0, height: 2 },
+                width: 6,
+                height: 6,
+                borderRadius: 3,
+                backgroundColor: statusColor,
               }}
             />
-
-            {open && (
-              <Animated.View
-                style={{
-                  position: 'absolute',
-                  width: 12,
-                  height: 12,
-                  borderRadius: 12,
-                  backgroundColor: isColorBlindMode
-                    ? 'rgba(0, 90, 181, 0.75)'
-                    : 'rgba(34, 197, 94, 0.75)',
-                  transform: [
-                    {
-                      scale: pingAnimation.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [0.25, 2.5],
-                      }),
-                    },
-                  ],
-                  opacity: pingAnimation.interpolate({
-                    inputRange: [0, 0.4, 1],
-                    outputRange: [0.8, 0.4, 0],
-                  }),
-                  top: -1,
-                  left: -1,
-                }}
-              />
-            )}
-          </View>
-          <View>
-            <Text
-              className={cn(
-                'font-bold text-xl',
-                open
-                  ? isDarkMode
-                    ? 'text-white'
-                    : 'text-ut-black'
-                  : isDarkMode
-                    ? 'text-gray-500'
-                    : 'text-ut-grey/75',
-              )}
-            >
-              {displayName}
-            </Text>
-            <Text
-              className={cn(
-                'font-medium text-xs',
-                isDarkMode ? 'text-gray-400' : 'text-ut-grey/75',
-              )}
-            >
-              {open ? getLocationTimeMessage(locationData, currentTime) : 'Closed'}
+            <Text style={{ fontSize: 12, color: statusColor, fontWeight: '500' }}>
+              {getStatusText()}
             </Text>
           </View>
         </View>
 
-        <View className="flex-row items-center justify-center gap-x-3">
-          <ChevronRight
-            color={isDarkMode ? '#fff' : getColor('um-maize', isColorBlindMode)}
-            size={20}
-          />
-        </View>
+        <ChevronRight size={18} color={isDarkMode ? '#4B5563' : '#D1D5DB'} />
       </Pressable>
     </Reanimated.View>
   );

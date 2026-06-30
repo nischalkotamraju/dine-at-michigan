@@ -100,19 +100,6 @@ const AppContent = () => {
                     />
 
                     <Stack.Screen
-                      name="favorites"
-                      options={{
-                        headerShown: false,
-                      }}
-                    />
-
-                    <Stack.Screen
-                      name="meal-plan"
-                      options={{
-                        headerShown: false,
-                      }}
-                    />
-                    <Stack.Screen
                       name="location/[location]"
                       options={{
                         headerShown: false,

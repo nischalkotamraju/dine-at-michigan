@@ -193,66 +193,43 @@ const FoodContent = ({
   isMealPlan: boolean;
   showExtraInfo: boolean;
   isDarkMode: boolean;
-}) => (
-  <>
-    <View className="gap-1">
-      <View className="flex-row items-center gap-2">
-        <Text
-          className={cn(
-            'line-clamp-2 max-w-[16rem] font-medium text-lg leading-6',
-            isDarkMode ? 'text-white' : 'text-black',
-          )}
-        >
-          {food.name}
-        </Text>
-        {isFavorite && showExtraInfo && (
-          <HeartIcon fill={COLORS['um-maize']} size={12} color={COLORS['um-maize']} />
+}) => {
+  const cal = food.nutrition?.calories;
+  const protein = food.nutrition?.protein;
+  const carbs = food.nutrition?.total_carbohydrates;
+  const hasMacros = cal != null || protein != null || carbs != null;
+
+  return (
+    <>
+      <View style={{ flex: 1, gap: 4 }}>
+        <View className="flex-row items-center gap-2">
+          <Text
+            className={cn(
+              'line-clamp-2 max-w-[16rem] font-semibold text-base leading-5',
+              isDarkMode ? 'text-white' : 'text-black',
+            )}
+          >
+            {food.name}
+          </Text>
+          {isMealPlan && showExtraInfo && <ChefHatIcon size={11} color={COLORS['um-maize']} />}
+        </View>
+
+        {showExtraInfo && hasMacros && (
+          <Text
+            className={cn(
+              'font-medium text-xs',
+              isDarkMode ? 'text-gray-400' : 'text-gray-500',
+            )}
+          >
+            {cal != null ? `${cal} kcal` : '—'}
+            {' · '}
+            {protein != null ? `${protein}g P` : '—'}
+            {' · '}
+            {carbs != null ? `${carbs}g C` : '—'}
+          </Text>
         )}
-        {isMealPlan && showExtraInfo && <ChefHatIcon size={12} color={COLORS['um-maize']} />}
-      </View>
 
-      {showExtraInfo && (
-        <>
-          <View className="flex flex-row gap-2">
-            <View className="flex-row items-center gap-x-0.5">
-              <Flame fill={COLORS['um-maize']} size={10} color={COLORS['um-maize']} />
-              <Text
-                className={cn(
-                  'font-medium text-xs',
-                  isDarkMode ? 'text-gray-300' : 'text-gray-700',
-                )}
-              >
-                {food.nutrition?.calories} kcal
-              </Text>
-            </View>
-            <View className="flex-row items-center gap-x-0.5">
-              <BicepsFlexed
-                fill={COLORS['um-maize']}
-                size={10}
-                color={COLORS['um-maize']}
-              />
-              <Text
-                className={cn(
-                  'font-medium text-xs',
-                  isDarkMode ? 'text-gray-300' : 'text-gray-700',
-                )}
-              >
-                {food.nutrition?.protein} Protein
-              </Text>
-            </View>
-            <View className="flex-row items-center gap-x-0.5">
-              <Wheat fill={COLORS['um-maize']} size={10} color={COLORS['um-maize']} />
-              <Text
-                className={cn(
-                  'font-medium text-xs',
-                  isDarkMode ? 'text-gray-300' : 'text-gray-700',
-                )}
-              >
-                {food.nutrition?.total_carbohydrates} Carbs
-              </Text>
-            </View>
-          </View>
-
+        {showExtraInfo && (
           <View className="flex-row flex-wrap gap-1">
             {food.allergens &&
               Object.entries(food.allergens).map(
@@ -267,13 +244,18 @@ const FoodContent = ({
                   ) : null,
               )}
           </View>
-        </>
-      )}
-    </View>
-    <View className="flex-row items-center gap-x-1">
-      <ChevronRight size={20} color={isDarkMode ? '#fff' : COLORS['um-maize']} />
-    </View>
-  </>
-);
+        )}
+      </View>
+
+      {/* Right side: bookmark if favorite, chevron always */}
+      <View className="flex-row items-center gap-x-2">
+        {isFavorite && showExtraInfo && (
+          <HeartIcon fill={COLORS['um-maize']} size={14} color={COLORS['um-maize']} />
+        )}
+        <ChevronRight size={18} color={isDarkMode ? '#4B5563' : '#D1D5DB'} />
+      </View>
+    </>
+  );
+};
 
 export default FoodComponent;
