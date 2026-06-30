@@ -50,8 +50,8 @@ export default function HomeFilterModal() {
     ...locationTypes.map((t) => ({ id: t.name, name: t.name })),
   ];
 
-  const bg = isDarkMode ? '#1C1C1E' : '#F2F2F7';
-  const cardBg = isDarkMode ? '#2C2C2E' : '#fff';
+  const bg = isDarkMode ? '#000' : '#F2F2F7';
+  const cardBg = isDarkMode ? '#1C1C1E' : '#fff';
   const subColor = isDarkMode ? '#636366' : '#8E8E93';
 
   const handleSelect = (id: string) => {
@@ -88,8 +88,11 @@ export default function HomeFilterModal() {
       >
         {options.map((option) => {
           const isSelected = selectedFilter === option.id;
-          const iconColor = isSelected ? '#fff' : COLORS['um-maize'];
-          const tileBg = isSelected ? COLORS['um-maize'] : cardBg;
+          const iconColor = isSelected ? COLORS['um-maize'] : isDarkMode ? '#8E8E93' : '#8E8E93';
+          const tileBg = isSelected
+            ? isDarkMode ? '#2C2C2E' : '#fff'
+            : isDarkMode ? '#2C2C2E' : '#fff';
+          const borderColor = isSelected ? COLORS['um-maize'] : 'transparent';
 
           return (
             <TouchableOpacity
@@ -101,6 +104,8 @@ export default function HomeFilterModal() {
                 height: CARD_SIZE,
                 backgroundColor: tileBg,
                 borderRadius: 18,
+                borderWidth: 2,
+                borderColor: borderColor,
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: 10,
@@ -114,9 +119,9 @@ export default function HomeFilterModal() {
               {getIcon(option.id, iconColor)}
               <Text
                 style={{
-                  fontSize: 12,
+                  fontSize: 13,
                   fontWeight: '600',
-                  color: isSelected ? '#fff' : isDarkMode ? '#fff' : '#000',
+                  color: isSelected ? COLORS['um-maize'] : isDarkMode ? '#fff' : '#000',
                   textAlign: 'center',
                   paddingHorizontal: 4,
                 }}
