@@ -151,6 +151,16 @@ const Location = () => {
   // Get active filters from filters store
   const activeFilters = useFiltersStore((state) => state.filters);
 
+  // Sync meal period filter → selected menu
+  useEffect(() => {
+    if (activeFilters.mealPeriod && menuFilters.length > 0) {
+      const match = menuFilters.find((f) =>
+        f.title.toLowerCase().includes(activeFilters.mealPeriod!.toLowerCase()),
+      );
+      if (match) setSelectedMenu(match.id);
+    }
+  }, [activeFilters.mealPeriod, menuFilters]);
+
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearchQuery = useDebounce(searchQuery, 300);

@@ -11,15 +11,19 @@ interface DietaryFilters {
   [key: string]: boolean;
 }
 
+export type MealPeriod = 'Breakfast' | 'Lunch' | 'Dinner' | 'Late Night' | null;
+
 export interface FiltersState {
   filters: {
     favorites: boolean;
     mealPlan: boolean;
+    mealPeriod: MealPeriod;
     allergens: AllergenFilters;
     dietary: DietaryFilters;
   };
   toggleFavoriteFilter: () => void;
   toggleMealPlanFilter: () => void;
+  setMealPeriod: (period: MealPeriod) => void;
   toggleAllergenFilter: (allergen: string) => void;
   toggleDietaryFilter: (diet: string) => void;
   resetFilters: () => void;
@@ -31,6 +35,7 @@ export const useFiltersStore = create<FiltersState>()(
       filters: {
         favorites: false,
         mealPlan: false,
+        mealPeriod: null,
         allergens: {},
         dietary: {},
       },
@@ -49,6 +54,15 @@ export const useFiltersStore = create<FiltersState>()(
           filters: {
             ...state.filters,
             mealPlan: !state.filters.mealPlan,
+          },
+        }));
+      },
+
+      setMealPeriod: (period: MealPeriod) => {
+        set((state) => ({
+          filters: {
+            ...state.filters,
+            mealPeriod: state.filters.mealPeriod === period ? null : period,
           },
         }));
       },
@@ -82,6 +96,7 @@ export const useFiltersStore = create<FiltersState>()(
           filters: {
             favorites: false,
             mealPlan: false,
+            mealPeriod: null,
             allergens: {},
             dietary: {},
           },

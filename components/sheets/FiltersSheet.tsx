@@ -19,10 +19,13 @@ const FiltersSheet = ({ sheetId }: SheetProps<'filters'>) => {
     filters,
     toggleFavoriteFilter,
     toggleMealPlanFilter,
+    setMealPeriod,
     toggleAllergenFilter,
     toggleDietaryFilter,
     resetFilters,
   } = useFiltersStore();
+
+  const MEAL_PERIODS = ['Breakfast', 'Lunch', 'Dinner', 'Late Night'] as const;
 
   // Helper function to format allergen keys
   const formatKey = (key: string) => {
@@ -77,6 +80,42 @@ const FiltersSheet = ({ sheetId }: SheetProps<'filters'>) => {
                 Reset
               </Text>
             </TouchableOpacity>
+          </View>
+
+          {/* Meal Period */}
+          <Text className={cn('mb-2 font-semibold text-xl', isDarkMode ? 'text-gray-100' : '')}>
+            Meal Period
+          </Text>
+          <View className="mb-4 flex-row flex-wrap gap-2">
+            {MEAL_PERIODS.map((period) => {
+              const isActive = filters.mealPeriod === period;
+              return (
+                <TouchableOpacity
+                  key={period}
+                  onPress={() => {
+                    setMealPeriod(period);
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  }}
+                  className={cn(
+                    'rounded-full px-4 py-2',
+                    isActive
+                      ? 'bg-um-maize'
+                      : isDarkMode
+                        ? 'bg-neutral-800'
+                        : 'bg-gray-100',
+                  )}
+                >
+                  <Text
+                    className={cn(
+                      'font-semibold text-sm',
+                      isActive ? 'text-white' : isDarkMode ? 'text-gray-200' : 'text-black',
+                    )}
+                  >
+                    {period}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
 
           {/* Special Filters */}
