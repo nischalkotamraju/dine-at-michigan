@@ -113,6 +113,7 @@ const AppContent = () => {
                         sheetAllowedDetents: [0.92],
                         sheetInitialDetentIndex: 0,
                         sheetGrabberVisible: true,
+                        contentStyle: { backgroundColor: 'transparent' },
                       }}
                     />
                   </Stack>
