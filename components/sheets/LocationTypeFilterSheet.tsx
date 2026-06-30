@@ -1,7 +1,8 @@
 import * as Haptics from 'expo-haptics';
 import { Check } from 'lucide-react-native';
 import { Text, TouchableOpacity, View } from 'react-native';
-import ActionSheet, { ScrollView, type SheetProps } from 'react-native-actions-sheet';
+import ActionSheet, { type SheetProps } from 'react-native-actions-sheet';
+import { ScrollView } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSettingsStore } from '~/store/useSettingsStore';
 import { COLORS } from '~/utils/colors';
@@ -33,10 +34,13 @@ const LocationTypeFilterSheet = ({ sheetId, payload }: SheetProps<'location-type
       defaultOverlayOpacity={0.4}
       containerStyle={{ backgroundColor: bg }}
       gestureEnabled
+      closeOnTouchBackdrop
       safeAreaInsets={insets}
       useBottomSafeAreaPadding
+      springOffset={50}
+      springConfig={{ damping: 18, mass: 0.7, stiffness: 200 }}
     >
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: '60%' }}>
         <View style={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 8 }}>
           <Text style={{ fontSize: 13, fontWeight: '600', color: subColor, letterSpacing: 0.5, marginBottom: 12 }}>
             FILTER BY TYPE
