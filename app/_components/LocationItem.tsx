@@ -125,7 +125,6 @@ const LocationItem = ({ location, currentTime }: LocationItemProps) => {
           borderRadius: 14,
           padding: 12,
           marginBottom: 8,
-          marginHorizontal: 2,
           gap: 12,
         }}
       >
