@@ -49,7 +49,7 @@ const HomeHeader = ({ currentTime, locationTypes }: HomeHeaderProps) => {
       {/* Greeting */}
       <View>
         <Text style={{ fontSize: 26, fontWeight: '800', color: textColor }}>
-          {getGreeting(currentTime.getHours())}, Wolverine 👋
+          {getGreeting(currentTime.getHours())}, Wolverine
         </Text>
         <Text style={{ fontSize: 14, color: subColor, marginTop: 2 }}>
           Here's what's open today.
