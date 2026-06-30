@@ -1,9 +1,9 @@
-import { Bell } from 'lucide-react-native';
+import * as Haptics from 'expo-haptics';
+import { SlidersHorizontal } from 'lucide-react-native';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
-import FilterBar from '~/components/FilterBar';
+import { SheetManager } from 'react-native-actions-sheet';
 import { useSettingsStore } from '~/store/useSettingsStore';
 import { COLORS } from '~/utils/colors';
-import { cn } from '~/utils/utils';
 import type * as schema from '../../services/database/schema';
 import type { FilterType } from '../(tabs)';
 
@@ -30,20 +30,33 @@ const HomeHeader = ({
 }: HomeHeaderProps) => {
   const isDarkMode = useSettingsStore((state) => state.isDarkMode);
 
-  const filterItems = [
-    { id: 'all', title: 'All' },
-    ...locationTypes
-      .sort((a, b) => a.display_order - b.display_order)
-      .map((type) => ({ id: type.name, title: type.name })),
-  ];
-
   const textColor = isDarkMode ? '#fff' : '#111';
   const subColor = isDarkMode ? '#9CA3AF' : '#6B7280';
+  const filterActive = selectedFilter !== 'all';
+  const activeLabel = filterActive
+    ? locationTypes.find((t) => t.name === selectedFilter)?.name ?? 'All'
+    : null;
+
+  const openFilterSheet = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    SheetManager.show('location-type-filter', {
+      payload: {
+        selectedFilter,
+        locationTypes: locationTypes
+          .sort((a, b) => a.display_order - b.display_order)
+          .map((t) => ({ id: t.name, name: t.name })),
+        onSelect: (filter: string) => {
+          setSelectedFilter(filter as FilterType);
+          SheetManager.hide('location-type-filter');
+        },
+      },
+    });
+  };
 
   return (
     <View style={{ marginTop: 8, gap: 16 }}>
       {/* Top bar: logo + bell */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 0 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <Image source={icon} style={{ width: 36, height: 36 }} />
           <View>
@@ -55,13 +68,10 @@ const HomeHeader = ({
             </Text>
           </View>
         </View>
-        <TouchableOpacity onPress={() => {}}>
-          <Bell size={22} color={isDarkMode ? '#9CA3AF' : '#6B7280'} />
-        </TouchableOpacity>
       </View>
 
       {/* Greeting */}
-      <View style={{ paddingHorizontal: 0 }}>
+      <View>
         <Text style={{ fontSize: 26, fontWeight: '800', color: textColor }}>
           {getGreeting(currentTime.getHours())}, Wolverine 👋
         </Text>
@@ -70,14 +80,37 @@ const HomeHeader = ({
         </Text>
       </View>
 
-      {/* Filter bar */}
-      <View style={{ paddingHorizontal: 0 }}>
-        <FilterBar
-          selectedItem={selectedFilter}
-          setSelectedItem={setSelectedFilter}
-          items={filterItems}
+      {/* Filter button */}
+      <TouchableOpacity
+        onPress={openFilterSheet}
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          alignSelf: 'flex-start',
+          gap: 6,
+          paddingHorizontal: 12,
+          paddingVertical: 7,
+          borderRadius: 20,
+          backgroundColor: filterActive
+            ? COLORS['um-maize']
+            : isDarkMode ? '#2C2C2E' : '#F2F2F7',
+        }}
+      >
+        <SlidersHorizontal
+          size={14}
+          color={filterActive ? '#fff' : isDarkMode ? '#fff' : '#000'}
+          strokeWidth={2}
         />
-      </View>
+        <Text
+          style={{
+            fontSize: 13,
+            fontWeight: '600',
+            color: filterActive ? '#fff' : isDarkMode ? '#fff' : '#000',
+          }}
+        >
+          {filterActive ? activeLabel : 'All Locations'}
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 };

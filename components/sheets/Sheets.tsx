@@ -5,6 +5,7 @@ import type { Location } from '~/services/database/schema';
 import FiltersSheet from './FiltersSheet';
 import FoodInfoSheet from './FoodInfoSheet';
 import LocationAboutSheet from './LocationAboutSheet';
+import LocationTypeFilterSheet from './LocationTypeFilterSheet';
 import MapLocationSheet from './MapLocationSheet';
 
 registerSheet('location-about', LocationAboutSheet);
@@ -12,6 +13,7 @@ registerSheet('food-info', FoodInfoSheet, 'food');
 registerSheet('filters', FiltersSheet);
 registerSheet('filters', FiltersSheet, 'settings');
 registerSheet('map-location', MapLocationSheet);
+registerSheet('location-type-filter', LocationTypeFilterSheet);
 
 // We extend some of the types here to give us great intellisense
 // across the app for all registered sheets.
@@ -25,6 +27,13 @@ declare module 'react-native-actions-sheet' {
     'food-info': SheetDefinition;
     filters: SheetDefinition;
     settings: SheetDefinition;
+    'location-type-filter': SheetDefinition<{
+      payload: {
+        selectedFilter: string;
+        locationTypes: { id: string; name: string }[];
+        onSelect: (filter: string) => void;
+      };
+    }>;
     'map-location': SheetDefinition<{
       payload: {
         name: string;
