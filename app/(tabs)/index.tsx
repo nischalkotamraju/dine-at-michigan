@@ -321,7 +321,7 @@ export default function Home() {
               if (item.type === 'promo') {
                 return (
                   <TouchableOpacity
-                    onPress={() => router.navigate('/(tabs)/meal-plan')}
+                    onPress={() => router.navigate('/(tabs)/search')}
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center',
@@ -334,27 +334,14 @@ export default function Home() {
                       gap: 12,
                     }}
                   >
-                    <Text style={{ fontSize: 32 }}>🍽️</Text>
-                    <View style={{ flex: 1 }}>
-                      <Text style={{ fontSize: 15, fontWeight: '700', color: isDarkMode ? '#fff' : '#000' }}>Explore menus</Text>
-                      <Text style={{ fontSize: 12, color: isDarkMode ? '#9CA3AF' : '#6B7280', marginTop: 2 }}>View menus, hours, and more</Text>
+                    <View style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: 'rgba(255,203,5,0.15)', alignItems: 'center', justifyContent: 'center' }}>
+                      <Search size={20} color={COLORS['um-maize']} strokeWidth={1.8} />
                     </View>
-                    <TouchableOpacity
-                      onPress={() => router.navigate('/(tabs)/meal-plan')}
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        gap: 4,
-                        borderWidth: 1.5,
-                        borderColor: COLORS['um-maize'],
-                        borderRadius: 20,
-                        paddingHorizontal: 12,
-                        paddingVertical: 7,
-                      }}
-                    >
-                      <Text style={{ fontSize: 12, fontWeight: '700', color: COLORS['um-maize'] }}>View Meal Plan</Text>
-                      <ChevronRight size={12} color={COLORS['um-maize']} strokeWidth={2.5} />
-                    </TouchableOpacity>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 15, fontWeight: '700', color: isDarkMode ? '#fff' : '#000' }}>Search Menus</Text>
+                      <Text style={{ fontSize: 12, color: isDarkMode ? '#9CA3AF' : '#6B7280', marginTop: 2 }}>Find dishes across all dining halls</Text>
+                    </View>
+                    <ChevronRight size={14} color={isDarkMode ? '#3A3A3C' : '#C7C7CC'} />
                   </TouchableOpacity>
                 );
               }

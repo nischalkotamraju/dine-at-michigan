@@ -1,6 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import { Tabs } from 'expo-router';
-import { Bookmark, ChefHat, Ellipsis, Home, Search } from 'lucide-react-native';
+import { Bookmark, Ellipsis, Home, Search } from 'lucide-react-native';
 
 import { useSettingsStore } from '~/store/useSettingsStore';
 import { COLORS } from '~/utils/colors';
@@ -51,14 +51,7 @@ export default function Layout() {
         }}
         listeners={{ tabPress: handleTabPress }}
       />
-      <Tabs.Screen
-        name="meal-plan"
-        options={{
-          title: 'Meal Plan',
-          tabBarIcon: ({ color, size }) => <ChefHat size={size} color={color} strokeWidth={1.5} />,
-        }}
-        listeners={{ tabPress: handleTabPress }}
-      />
+      <Tabs.Screen name="meal-plan" options={{ href: null }} />
       <Tabs.Screen
         name="saved"
         options={{
