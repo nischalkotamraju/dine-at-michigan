@@ -34,12 +34,12 @@ const HomeHeader = ({ currentTime, locationTypes }: HomeHeaderProps) => {
       {/* Top bar */}
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <Image source={require('../../assets/logo.png')} style={{ width: 42, height: 42, borderRadius: 12 }} resizeMode="contain" />
+          <Image source={require('../../assets/logo.png')} style={{ width: 52, height: 52, borderRadius: 14 }} resizeMode="contain" />
           <View>
-            <Text style={{ fontSize: 15, fontWeight: '800', color: isDarkMode ? '#fff' : '#000', letterSpacing: -0.3 }}>
+            <Text style={{ fontSize: 20, fontWeight: '800', color: isDarkMode ? '#fff' : '#000', letterSpacing: -0.4 }}>
               Dine @ Michigan
             </Text>
-            <Text style={{ fontSize: 11, fontWeight: '500', color: COLORS['um-maize'], letterSpacing: 0.2, marginTop: -1 }}>
+            <Text style={{ fontSize: 13, fontWeight: '500', color: COLORS['um-maize'], letterSpacing: 0.2, marginTop: 1 }}>
               University of Michigan
             </Text>
           </View>
