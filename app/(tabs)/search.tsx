@@ -17,7 +17,7 @@ import { cn } from '~/utils/utils';
 
 interface SearchResult {
   name: string;
-  locationName: string;
+  locationNames: string[];
   menuName: string;
   categoryName: string;
   calories: string | null;
@@ -43,14 +43,14 @@ const SearchScreen = () => {
     try {
       const rows = db.getAllSync<{
         name: string;
-        location_name: string;
+        location_names: string;
         menu_name: string;
         category_title: string;
         calories: string | null;
         protein: string | null;
         total_carbohydrates: string | null;
       }>(
-        `SELECT fi.name, l.name as location_name, m.name as menu_name,
+        `SELECT fi.name, GROUP_CONCAT(DISTINCT l.name) as location_names, m.name as menu_name,
                 mc.title as category_title,
                 n.calories, n.protein, n.total_carbohydrates
          FROM food_item fi
@@ -68,7 +68,7 @@ const SearchScreen = () => {
       setResults(
         rows.map((r) => ({
           name: r.name,
-          locationName: r.location_name,
+          locationNames: r.location_names ? r.location_names.split(',') : [],
           menuName: r.menu_name,
           categoryName: r.category_title,
           calories: r.calories,
@@ -153,7 +153,7 @@ const SearchScreen = () => {
                     food: item.name,
                     menu: item.menuName,
                     category: item.categoryName,
-                    location: item.locationName,
+                    location: item.locationNames[0] ?? '',
                     favorite: 'false',
                   },
                 })
@@ -170,17 +170,33 @@ const SearchScreen = () => {
               <Text style={{ fontSize: 15, fontWeight: '600', color: textColor }} numberOfLines={1}>
                 {item.name}
               </Text>
-              <Text style={{ fontSize: 12, color: subColor, marginTop: 2 }} numberOfLines={1}>
-                {item.locationName} · {item.menuName}
-              </Text>
               {(item.calories || item.protein || item.carbs) && (
-                <Text style={{ fontSize: 12, color: COLORS['um-maize'], marginTop: 4 }}>
+                <Text style={{ fontSize: 12, color: COLORS['um-maize'], marginTop: 3 }}>
                   {item.calories ? `${item.calories} kcal` : '—'}
-                  {' • '}
+                  {' · '}
                   {item.protein ? `${item.protein}g P` : '—'}
-                  {' • '}
+                  {' · '}
                   {item.carbs ? `${item.carbs}g C` : '—'}
                 </Text>
+              )}
+              {item.locationNames.length > 0 && (
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+                  {item.locationNames.map((loc) => (
+                    <View
+                      key={loc}
+                      style={{
+                        backgroundColor: isDarkMode ? '#2C2C2E' : '#E5E7EB',
+                        borderRadius: 6,
+                        paddingHorizontal: 8,
+                        paddingVertical: 3,
+                      }}
+                    >
+                      <Text style={{ fontSize: 11, fontWeight: '500', color: subColor }}>
+                        {loc}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
               )}
             </Pressable>
           )}
