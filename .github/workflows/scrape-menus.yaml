@@ -18,10 +18,12 @@ jobs:
 
       - name: Install Playwright and dependencies
         run: |
-          npm install playwright
-          npx playwright install chromium --with-deps
+          mkdir -p /tmp/scraper
+          cp scripts/scrape-menus.mjs /tmp/scraper/
+          cd /tmp/scraper && npm init -y && npm install playwright
+          npx --prefix /tmp/scraper playwright install chromium --with-deps
 
       - name: Scrape all dining halls (6 dates)
         env:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-        run: node scripts/scrape-menus.mjs
+        run: node /tmp/scraper/scrape-menus.mjs
