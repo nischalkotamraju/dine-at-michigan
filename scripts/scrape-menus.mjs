@@ -10,6 +10,7 @@
 
 import { chromium } from 'playwright';
 import { createClient } from '@supabase/supabase-js';
+import ws from 'ws';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://jzcxllxhnjjbgflpsehi.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -19,7 +20,9 @@ if (!SUPABASE_KEY) {
   process.exit(1);
 }
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
+  realtime: { transport: ws },
+});
 
 const DINING_HALLS = [
   { name: 'Bursley Dining Hall',       slug: 'bursley' },
