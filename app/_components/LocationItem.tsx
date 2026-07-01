@@ -76,7 +76,7 @@ const LocationItem = ({ location, currentTime }: LocationItemProps) => {
         style={{
           flexDirection: 'row',
           alignItems: 'center',
-          paddingVertical: 14,
+          paddingVertical: 18,
           gap: 10,
           backgroundColor: isDarkMode ? '#262626' : '#f9f9f9',
           borderRadius: 10,
