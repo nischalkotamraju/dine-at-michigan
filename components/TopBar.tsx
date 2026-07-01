@@ -14,7 +14,7 @@ import { useSettingsStore } from '~/store/useSettingsStore';
 import { COLORS } from '~/utils/colors';
 import Alert from './Alert';
 
-const icon = require('../assets/image.png');
+const icon = require('../assets/logo.png');
 
 const HomeTopBar = () => {
   const isDarkMode = useSettingsStore((state) => state.isDarkMode);
