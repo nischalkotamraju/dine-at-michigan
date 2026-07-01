@@ -18,7 +18,7 @@ jobs:
 
       - name: Install Playwright and dependencies
         run: |
-          npm install playwright @supabase/supabase-js ws
+          npm install playwright
           npx playwright install chromium --with-deps
 
       - name: Scrape all dining halls (6 dates)

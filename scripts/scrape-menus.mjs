@@ -9,8 +9,6 @@
  */
 
 import { chromium } from 'playwright';
-import { createClient } from '@supabase/supabase-js';
-import ws from 'ws';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://jzcxllxhnjjbgflpsehi.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -19,10 +17,6 @@ if (!SUPABASE_KEY) {
   console.error('SUPABASE_SERVICE_ROLE_KEY env var is required');
   process.exit(1);
 }
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
-  realtime: { transport: ws },
-});
 
 const DINING_HALLS = [
   { name: 'Bursley Dining Hall',       slug: 'bursley' },
@@ -34,7 +28,35 @@ const DINING_HALLS = [
 ];
 
 // ---------------------------------------------------------------------------
-// HTML parsing (mirrors cloudflare-worker/src/index.js)
+// Supabase REST helpers (no SDK needed)
+// ---------------------------------------------------------------------------
+
+async function sbFetch(method, path, body) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1${path}`, {
+    method,
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      Prefer: method === 'POST' ? 'return=representation' : 'return=minimal',
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const text = await res.text();
+  if (!res.ok) throw new Error(`Supabase ${method} ${path} → ${res.status}: ${text.substring(0, 300)}`);
+  return text ? JSON.parse(text) : null;
+}
+
+async function getLocationMap() {
+  const names = DINING_HALLS.map(h => h.name).join(',');
+  const data = await sbFetch('GET', `/location?name=in.(${encodeURIComponent(names)})&select=id,name`);
+  const map = {};
+  for (const row of (data ?? [])) map[row.name] = row.id;
+  return map;
+}
+
+// ---------------------------------------------------------------------------
+// HTML parsing
 // ---------------------------------------------------------------------------
 
 function stripTags(html) {
@@ -180,28 +202,12 @@ function parseNutrition(html) {
 }
 
 // ---------------------------------------------------------------------------
-// Supabase helpers
-// ---------------------------------------------------------------------------
-
-async function getLocationMap() {
-  const { data, error } = await supabase
-    .from('location')
-    .select('id, name')
-    .in('name', DINING_HALLS.map(h => h.name));
-  if (error) throw new Error(`Failed to fetch locations: ${error.message}`);
-  const map = {};
-  for (const row of data) map[row.name] = row.id;
-  return map;
-}
-
-// ---------------------------------------------------------------------------
 // Scrape one hall for one date (uses Playwright page)
 // ---------------------------------------------------------------------------
 
 async function scrapeHall(page, hall, date, locationId) {
   const url = `https://dining.umich.edu/menus-locations/dining-halls/${hall.slug}/?menuDate=${date}`;
   await page.goto(url, { waitUntil: 'networkidle', timeout: 60000 });
-  // Wait for menu content or "no menu" indicator
   await page.waitForSelector('h3, .no-menu-message, #content', { timeout: 15000 }).catch(() => {});
   const html = await page.content();
 
@@ -217,14 +223,11 @@ async function scrapeHall(page, hall, date, locationId) {
   }
 
   // Delete existing menus for this location+date
-  await supabase.from('menu').delete().eq('location_id', locationId).eq('date', date);
+  await sbFetch('DELETE', `/menu?location_id=eq.${locationId}&date=eq.${date}`);
 
   // Bulk insert menus
-  const { data: menuRows, error: menuErr } = await supabase
-    .from('menu')
-    .insert(meals.map(m => ({ location_id: locationId, name: m.name, date })))
-    .select('id, name');
-  if (menuErr) throw new Error(`menu insert: ${menuErr.message}`);
+  const menuRows = await sbFetch('POST', '/menu',
+    meals.map(m => ({ location_id: locationId, name: m.name, date })));
 
   const menuIdMap = {};
   for (const row of menuRows) menuIdMap[row.name] = row.id;
@@ -241,11 +244,8 @@ async function scrapeHall(page, hall, date, locationId) {
   if (allCategories.length === 0) return;
 
   // Bulk insert categories
-  const { data: catRows, error: catErr } = await supabase
-    .from('menu_category')
-    .insert(allCategories.map(c => ({ menu_id: c.menu_id, title: c.title })))
-    .select('id, menu_id, title');
-  if (catErr) throw new Error(`menu_category insert: ${catErr.message}`);
+  const catRows = await sbFetch('POST', '/menu_category',
+    allCategories.map(c => ({ menu_id: c.menu_id, title: c.title })));
 
   const catIdMap = {};
   for (const row of catRows) catIdMap[`${row.menu_id}:${row.title}`] = row.id;
@@ -264,11 +264,7 @@ async function scrapeHall(page, hall, date, locationId) {
   // Bulk insert nutrition
   const nutritionItems = allItems.filter(i => i.nutrition);
   if (nutritionItems.length > 0) {
-    const { data: nutRows, error: nutErr } = await supabase
-      .from('nutrition')
-      .insert(nutritionItems.map(i => i.nutrition))
-      .select('id');
-    if (nutErr) throw new Error(`nutrition insert: ${nutErr.message}`);
+    const nutRows = await sbFetch('POST', '/nutrition', nutritionItems.map(i => i.nutrition));
     for (let j = 0; j < nutritionItems.length; j++) {
       nutritionItems[j]._nutritionId = nutRows[j]?.id ?? null;
     }
@@ -277,26 +273,19 @@ async function scrapeHall(page, hall, date, locationId) {
   // Bulk insert allergens
   const allergenItems = allItems.filter(i => i.allergens);
   if (allergenItems.length > 0) {
-    const { data: algRows, error: algErr } = await supabase
-      .from('allergens')
-      .insert(allergenItems.map(i => i.allergens))
-      .select('id');
-    if (algErr) throw new Error(`allergens insert: ${algErr.message}`);
+    const algRows = await sbFetch('POST', '/allergens', allergenItems.map(i => i.allergens));
     for (let j = 0; j < allergenItems.length; j++) {
       allergenItems[j]._allergenId = algRows[j]?.id ?? null;
     }
   }
 
   // Bulk insert food items
-  const { error: foodErr } = await supabase
-    .from('food_item')
-    .insert(allItems.map(item => ({
-      menu_category_id: item.categoryId,
-      name: item.name,
-      nutrition_id: item._nutritionId ?? null,
-      allergens_id: item._allergenId ?? null,
-    })));
-  if (foodErr) throw new Error(`food_item insert: ${foodErr.message}`);
+  await sbFetch('POST', '/food_item', allItems.map(item => ({
+    menu_category_id: item.categoryId,
+    name: item.name,
+    nutrition_id: item._nutritionId ?? null,
+    allergens_id: item._allergenId ?? null,
+  })));
 
   console.log(`  ✅ ${meals.length} meals, ${allItems.length} items`);
 }
@@ -305,7 +294,6 @@ async function scrapeHall(page, hall, date, locationId) {
 // Main
 // ---------------------------------------------------------------------------
 
-// Determine dates: CLI arg or full 6-date range (2 back, today, 3 forward)
 let dates;
 if (process.argv[2]) {
   dates = [process.argv[2]];
@@ -349,7 +337,6 @@ try {
       } catch (err) {
         console.log(`FAILED: ${err.message}`);
       }
-      // Polite delay
       await new Promise(r => setTimeout(r, 1500));
     }
   }
