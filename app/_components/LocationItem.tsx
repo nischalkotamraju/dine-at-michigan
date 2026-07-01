@@ -2,7 +2,7 @@ import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { ChevronRight } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import Reanimated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 
 import { useDatabase } from '~/hooks/useDatabase';
@@ -56,7 +56,6 @@ const LocationItem = ({ location, currentTime }: LocationItemProps) => {
   };
 
   const statusColor = status === 'open' ? '#22C55E' : '#EF4444';
-  const borderColor = isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
   const nameColor = isDarkMode ? '#fff' : '#000';
   const subColor = isDarkMode ? '#6B7280' : '#9CA3AF';
 
@@ -77,10 +76,9 @@ const LocationItem = ({ location, currentTime }: LocationItemProps) => {
         style={{
           flexDirection: 'row',
           alignItems: 'center',
-          paddingVertical: 13,
+          paddingVertical: 14,
           gap: 10,
-          borderWidth: 1,
-          borderColor,
+          backgroundColor: isDarkMode ? '#1C1C1E' : '#F2F2F7',
           borderRadius: 12,
           paddingHorizontal: 14,
           marginBottom: 8,
