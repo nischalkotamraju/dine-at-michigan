@@ -25,5 +25,6 @@ jobs:
 
       - name: Scrape all dining halls (6 dates)
         env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: node /tmp/scraper/scrape-menus.mjs
