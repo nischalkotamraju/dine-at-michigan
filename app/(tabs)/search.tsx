@@ -59,6 +59,7 @@ const SearchScreen = () => {
          JOIN location l ON m.location_id = l.id
          LEFT JOIN nutrition n ON fi.nutrition_id = n.id
          WHERE fi.name LIKE ? COLLATE NOCASE
+         GROUP BY fi.name
          ORDER BY fi.name
          LIMIT 100`,
         [`%${text.trim()}%`],
