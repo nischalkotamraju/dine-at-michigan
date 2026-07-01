@@ -1,6 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
-import { SlidersHorizontal } from 'lucide-react-native';
+import { Bell, ChevronDown, SlidersHorizontal } from 'lucide-react-native';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 import { useHomeFilterStore } from '~/store/useHomeFilterStore';
 import { useSettingsStore } from '~/store/useSettingsStore';
@@ -32,7 +32,7 @@ const HomeHeader = ({ currentTime, locationTypes }: HomeHeaderProps) => {
   return (
     <View style={{ marginTop: 8, gap: 16 }}>
       {/* Top bar */}
-      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
           <Image source={require('../../assets/logo.png')} style={{ width: 42, height: 42, borderRadius: 12 }} resizeMode="contain" />
           <View>
@@ -44,12 +44,29 @@ const HomeHeader = ({ currentTime, locationTypes }: HomeHeaderProps) => {
             </Text>
           </View>
         </View>
+
+        {/* Bell */}
+        <TouchableOpacity
+          onPress={() => router.push('/notifications')}
+          style={{
+            width: 38,
+            height: 38,
+            borderRadius: 19,
+            backgroundColor: isDarkMode ? '#1C1C1E' : '#F2F2F7',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Bell size={18} color={isDarkMode ? '#fff' : '#000'} strokeWidth={1.8} />
+          {/* Notification dot */}
+          <View style={{ position: 'absolute', top: 7, right: 7, width: 7, height: 7, borderRadius: 3.5, backgroundColor: COLORS['um-maize'] }} />
+        </TouchableOpacity>
       </View>
 
       {/* Greeting */}
       <View>
         <Text style={{ fontSize: 26, fontWeight: '800', color: textColor }}>
-          {getGreeting(currentTime.getHours())}, Wolverine
+          {getGreeting(currentTime.getHours())}, Wolverine 👋
         </Text>
         <Text style={{ fontSize: 14, color: subColor, marginTop: 2 }}>
           Here's what's open today.
@@ -67,20 +84,17 @@ const HomeHeader = ({ currentTime, locationTypes }: HomeHeaderProps) => {
           alignItems: 'center',
           alignSelf: 'flex-start',
           gap: 6,
-          paddingHorizontal: 12,
-          paddingVertical: 7,
+          paddingHorizontal: 14,
+          paddingVertical: 8,
           borderRadius: 20,
           backgroundColor: filterActive ? COLORS['um-maize'] : isDarkMode ? '#2C2C2E' : '#F2F2F7',
         }}
       >
-        <SlidersHorizontal
-          size={14}
-          color={filterActive ? '#fff' : isDarkMode ? '#fff' : '#000'}
-          strokeWidth={2}
-        />
+        <SlidersHorizontal size={13} color={filterActive ? '#fff' : isDarkMode ? '#fff' : '#000'} strokeWidth={2} />
         <Text style={{ fontSize: 13, fontWeight: '600', color: filterActive ? '#fff' : isDarkMode ? '#fff' : '#000' }}>
           {filterActive ? activeLabel : 'All Locations'}
         </Text>
+        <ChevronDown size={13} color={filterActive ? '#fff' : isDarkMode ? '#fff' : '#000'} strokeWidth={2.5} />
       </TouchableOpacity>
     </View>
   );

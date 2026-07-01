@@ -3,7 +3,8 @@ import { eq } from 'drizzle-orm';
 import { drizzle, type ExpoSQLiteDatabase } from 'drizzle-orm/expo-sqlite';
 import { useDrizzleStudio } from 'expo-drizzle-studio-plugin';
 import * as Network from 'expo-network';
-import { Stack } from 'expo-router';
+import { ChevronRight } from 'lucide-react-native';
+import { Stack, router } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { type SQLiteDatabase, useSQLiteContext } from 'expo-sqlite';
 import { useEffect, useState } from 'react';
@@ -261,18 +262,20 @@ export default function Home() {
 
   // Build a flat list with section headers
   type ListRow =
-    | { type: 'header'; label: string; color: string }
-    | { type: 'location'; item: schema.LocationWithType };
+    | { type: 'header'; label: string; color: string; count: number }
+    | { type: 'location'; item: schema.LocationWithType }
+    | { type: 'promo' };
 
   const listData: ListRow[] = [];
   if (open.length > 0) {
-    listData.push({ type: 'header', label: 'OPEN NOW', color: '#22C55E' });
+    listData.push({ type: 'header', label: 'OPEN NOW', color: '#22C55E', count: open.length });
     for (const item of open) listData.push({ type: 'location', item });
   }
   if (closed.length > 0) {
-    listData.push({ type: 'header', label: 'CLOSED', color: '#EF4444' });
+    listData.push({ type: 'header', label: 'CLOSED', color: '#EF4444', count: closed.length });
     for (const item of closed) listData.push({ type: 'location', item });
   }
+  listData.push({ type: 'promo' });
 
   return (
     <View style={{ flex: 1, backgroundColor: isDarkMode ? '#171717' : '#fff' }}>
@@ -305,21 +308,62 @@ export default function Home() {
             renderItem={({ item }) => {
               if (item.type === 'header') {
                 return (
-                  <View style={{ paddingHorizontal: 0, paddingTop: 16, paddingBottom: 6 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 16, paddingBottom: 8 }}>
                     <Text style={{ fontSize: 11, fontWeight: '700', color: item.color, letterSpacing: 0.8 }}>
                       {item.label}
+                    </Text>
+                    <Text style={{ fontSize: 12, fontWeight: '600', color: item.color, opacity: 0.7 }}>
+                      {item.count} {item.label === 'OPEN NOW' ? 'Open' : 'Closed'}
                     </Text>
                   </View>
                 );
               }
+              if (item.type === 'promo') {
+                return (
+                  <TouchableOpacity
+                    onPress={() => router.navigate('/(tabs)/meal-plan')}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      backgroundColor: isDarkMode ? '#262626' : '#f9f9f9',
+                      borderRadius: 12,
+                      borderWidth: 1,
+                      borderColor: isDarkMode ? '#333' : '#e5e7eb',
+                      padding: 14,
+                      marginTop: 16,
+                      gap: 12,
+                    }}
+                  >
+                    <Text style={{ fontSize: 32 }}>🍽️</Text>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 15, fontWeight: '700', color: isDarkMode ? '#fff' : '#000' }}>Explore menus</Text>
+                      <Text style={{ fontSize: 12, color: isDarkMode ? '#9CA3AF' : '#6B7280', marginTop: 2 }}>View menus, hours, and more</Text>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => router.navigate('/(tabs)/meal-plan')}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 4,
+                        borderWidth: 1.5,
+                        borderColor: COLORS['um-maize'],
+                        borderRadius: 20,
+                        paddingHorizontal: 12,
+                        paddingVertical: 7,
+                      }}
+                    >
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: COLORS['um-maize'] }}>View Meal Plan</Text>
+                      <ChevronRight size={12} color={COLORS['um-maize']} strokeWidth={2.5} />
+                    </TouchableOpacity>
+                  </TouchableOpacity>
+                );
+              }
               return (
-                <View style={{ paddingHorizontal: 0 }}>
-                  <LocationItem
-                    key={`${item.item.id}-${refreshKey}`}
-                    location={item.item}
-                    currentTime={currentTime}
-                  />
-                </View>
+                <LocationItem
+                  key={`${item.item.id}-${refreshKey}`}
+                  location={item.item}
+                  currentTime={currentTime}
+                />
               );
             }}
             keyExtractor={(item, index) =>
