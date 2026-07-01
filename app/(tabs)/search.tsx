@@ -10,7 +10,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useDatabase } from '~/hooks/useDatabase';
+import { useSQLiteContext } from 'expo-sqlite';
 import { useSettingsStore } from '~/store/useSettingsStore';
 import { COLORS } from '~/utils/colors';
 import { cn } from '~/utils/utils';
@@ -28,7 +28,7 @@ interface SearchResult {
 const SearchScreen = () => {
   const isDarkMode = useSettingsStore((state) => state.isDarkMode);
   const insets = useSafeAreaInsets();
-  const db = useDatabase();
+  const db = useSQLiteContext();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const inputRef = useRef<TextInput>(null);
@@ -41,7 +41,7 @@ const SearchScreen = () => {
     }
 
     try {
-      const rows = db.all<{
+      const rows = db.getAllSync<{
         name: string;
         location_name: string;
         menu_name: string;
