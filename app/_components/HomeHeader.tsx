@@ -36,7 +36,7 @@ const HomeHeader = ({ currentTime, locationTypes }: HomeHeaderProps) => {
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
           <Image source={require('../../assets/logo.png')} style={{ width: 52, height: 52, borderRadius: 14 }} resizeMode="contain" />
           <View>
-            <Text style={{ fontSize: 20, fontWeight: '800', color: isDarkMode ? '#fff' : '#000', letterSpacing: -0.4 }}>
+            <Text style={{ fontSize: 20, fontWeight: '600', color: isDarkMode ? '#fff' : '#000', letterSpacing: -0.4 }}>
               Dine @ Michigan
             </Text>
             <Text style={{ fontSize: 13, fontWeight: '500', color: COLORS['um-maize'], letterSpacing: 0.2, marginTop: 1 }}>
