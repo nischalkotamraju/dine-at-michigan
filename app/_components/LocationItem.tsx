@@ -78,8 +78,10 @@ const LocationItem = ({ location, currentTime }: LocationItemProps) => {
           alignItems: 'center',
           paddingVertical: 14,
           gap: 10,
-          backgroundColor: isDarkMode ? '#1C1C1E' : '#F2F2F7',
-          borderRadius: 12,
+          backgroundColor: isDarkMode ? '#262626' : '#f9f9f9',
+          borderRadius: 10,
+          borderWidth: 1,
+          borderColor: isDarkMode ? '#333' : '#e5e7eb',
           paddingHorizontal: 14,
           marginBottom: 8,
         }}
