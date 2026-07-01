@@ -367,7 +367,7 @@ export default function Home() {
               );
             }}
             keyExtractor={(item, index) =>
-              item.type === 'header' ? `header-${item.label}` : `loc-${item.item.id}-${index}`
+              item.type === 'header' ? `header-${item.label}` : item.type === 'promo' ? 'promo' : `loc-${item.item.id}-${index}`
             }
             showsVerticalScrollIndicator={false}
             ListHeaderComponent={
